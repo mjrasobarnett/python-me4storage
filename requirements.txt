@@ -1,0 +1,14 @@
+argcomplete==1.11.1
+colorama==0.4.3
+colorlog==4.1.0
+get==2019.4.13
+importlib-metadata==1.6.1
+packaging==20.4
+post==2019.4.13
+public==2019.4.13
+pyparsing==2.4.7
+query-string==2019.4.13
+request==2019.4.13
+six==1.15.0
+terminaltables==3.1.0
+zipp==3.1.0
