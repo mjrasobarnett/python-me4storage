@@ -13,6 +13,9 @@ from me4storage.common import util
 from me4storage.common.exceptions import UsageError
 from me4storage.common.nsca import CheckResult
 
+from me4storage import commands
+from me4storage.commands import check
+
 def cli():
 
     # Parse configuration files present if any to get default values
