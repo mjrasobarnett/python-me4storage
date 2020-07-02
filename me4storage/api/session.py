@@ -6,7 +6,8 @@ import hashlib
 from pprint import pformat
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-from me4storage.common.exceptions import LoginError, ApiError
+from me4storage.common.exceptions import LoginError, ApiError, ApiStatusError
+from me4storage.models.status import Status
 
 logger = logging.getLogger(__name__)
 
@@ -101,19 +102,19 @@ class Session:
         Check response body for 'status' object, and check that
         this shows a successfuly return code.
 
-        If not raise ApiError exception
+        If not raise ApiStatusError exception
         """
         try:
-            status_body = response['status'][0]
+            status_responses = response['status']
         except Exception as e:
             logger.error("Unable to parse API response status object. "
                          f"Response: \n{response.text}")
             raise ApiError("Unexpected status in response")
 
-        rc = status_body.get('return-code',-1)
-        response_desc = status_body.get('response','')
-        if rc != 0:
-            raise ApiError(f"Operation failed. rc: {rc}. Response: {response_desc}")
+        for status_response in status_responses:
+            status = Status(status_response)
+            if status.return_code != 0:
+                raise ApiStatusError(f"Operation failed. rc: {status.return_code}. Response: {status.response}", response)
 
     def _get(self, url, params={}):
 
@@ -148,14 +149,4 @@ class Session:
         if isinstance(data, list):
             raise RuntimeError(f'Bad object URL \'{url}\': expected an object, '
                                f'got a collection of objects')
-        return data
-
-
-    def get_collection(self, endpoint, params={}):
-        """ Get a collection of objects from API """
-        url = self._build_url(endpoint)
-        data = self._get(url, params)
-        if not isinstance(data, list):
-            raise RuntimeError('Bad object URL \'%s\': expected a collection '
-                               'of objects, got a single object' % url)
         return data

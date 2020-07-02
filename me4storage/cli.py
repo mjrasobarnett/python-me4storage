@@ -14,7 +14,7 @@ from me4storage.common.exceptions import UsageError
 from me4storage.common.nsca import CheckResult
 
 from me4storage import commands
-from me4storage.commands import check
+from me4storage.commands import check, modify, show
 
 def cli():
 
@@ -146,6 +146,42 @@ def cli():
                     help='''check health status''')
     subparsers.append(check_health_p)
     check_health_p.set_defaults(func=commands.check.health_status)
+
+    ####################################################################
+    # SET subcommands
+    ####################################################################
+
+    # Top level subcommand
+    set_p = subcommands.add_parser(name='set',
+        help='''set commands''')
+    set_subcommands = set_p.add_subparsers(dest='set_subcommands',
+        title='subcommands of set',description='''
+        Below are the core subcommands of program:''')
+    set_subcommands.required = True
+
+    set_system_info_p = set_subcommands.add_parser(name='system-info',
+                    parents=[auth_p],
+                    help='''set system information (name, contact, desc)''')
+    subparsers.append(set_system_info_p)
+    set_system_info_p.set_defaults(func=commands.modify.system_info)
+
+    ####################################################################
+    # SHOW subcommands
+    ####################################################################
+
+    # Top level subcommand
+    show_p = subcommands.add_parser(name='show',
+        help='''show commands''')
+    show_subcommands = show_p.add_subparsers(dest='show_subcommands',
+        title='subcommands of show',description='''
+        Below are the core subcommands of program:''')
+    show_subcommands.required = True
+
+    show_system_info_p = show_subcommands.add_parser(name='system-info',
+                    parents=[auth_p],
+                    help='''show system information (name, contact, desc)''')
+    subparsers.append(show_system_info_p)
+    show_system_info_p.set_defaults(func=commands.show.system_info)
 
     #########
     # PARSE arguments
