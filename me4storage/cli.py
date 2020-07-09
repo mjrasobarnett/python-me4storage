@@ -32,7 +32,7 @@ def cli():
         '-f','--config-files',
         nargs='?',
         # Later files take precendence over earlier
-        default=['/etc/nstorcli/nstorcli.conf','.nstorcli.conf'],
+        default=['/etc/me4cli/me4cli.conf','.me4cli.conf'],
         help="Tool configuration file location (default: %(default)s)"
         )
     conf_parser.add_argument('--debug',
