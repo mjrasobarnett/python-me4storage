@@ -16,25 +16,22 @@ from me4storage.api import show
 
 logger = logging.getLogger(__name__)
 
-def system_info(args):
-
-    session = Session(baseurl = args.api_baseurl,
-                      port = args.api_port,
-                      username = args.api_username,
-                      password = args.api_password,
-                      verify = False if args.api_disable_tls_verification else True)
+def system_info(args, session):
 
     systems = show.system(session)
     service_tags = show.service_tag_info(session)
 
     rc = CheckResult.OK
     for system in systems:
-        print(f"System: {system.system_name}")
-        print(f"\tProduct Type: {system.product_id}")
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+        print(f"  Product Type:    {system.product_id}")
+        print(f"  Contact:         {system.system_contact}")
+        print(f"  Description:     {system.system_information}")
+        print(f"  Location:        {system.system_location}")
 
     print(f"\nService Tags:")
     for service_tag in service_tags:
-        print(f"\tEnclosure: {service_tag.enclosure_id} - {service_tag.service_tag}")
+        print(f"  Enclosure:       {service_tag.enclosure_id} - {service_tag.service_tag}")
 
     return rc.value
 

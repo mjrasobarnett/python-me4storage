@@ -13,22 +13,19 @@ import me4storage.common.tables as tables
 import me4storage.common.formatters
 
 from me4storage.api import show, modify
+from me4storage import commands
 
 logger = logging.getLogger(__name__)
 
-def system_info(args):
-
-    session = Session(baseurl = args.api_baseurl,
-                      port = args.api_port,
-                      username = args.api_username,
-                      password = args.api_password,
-                      verify = False if args.api_disable_tls_verification else True)
+def system_info(args, session):
 
     modify.system_info(session,
                        name=args.system_name,
                        info=args.system_info,
                        contact=args.system_contact,
                        location=args.system_location)
+
+    commands.show.system_info(args, session)
 
     rc = CheckResult.OK
     return rc.value

@@ -13,6 +13,7 @@ from me4storage.common import util
 from me4storage.common.exceptions import UsageError
 from me4storage.common.nsca import CheckResult
 
+from me4storage.api.session import Session
 from me4storage import commands
 from me4storage.commands import check, modify, show
 
@@ -224,7 +225,13 @@ def cli():
 
     # Run subcommand function
     try:
-        rc = args.func(args)
+
+        session = Session(baseurl = args.api_baseurl,
+                          port = args.api_port,
+                          username = args.api_username,
+                          password = args.api_password,
+                          verify = False if args.api_disable_tls_verification else True)
+        rc = args.func(args, session)
     except Exception as e:
         # Print traceback if debug flag enabled
         if args.debug:

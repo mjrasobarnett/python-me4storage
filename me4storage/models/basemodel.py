@@ -109,3 +109,10 @@ class Model:
         formatter = self._formatters.get(attr_format, self._formatters['string'])
 
         return formatter(getattr(self, attr_name))
+
+    def __repr__(self):
+        output = []
+        for attr in sorted(self.__dict__):
+            value = self.format_attribute(attr)
+            output.append(f"{attr}: {value}")
+        return "\n".join(output)

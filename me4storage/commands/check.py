@@ -16,13 +16,7 @@ from me4storage.api import show
 
 logger = logging.getLogger(__name__)
 
-def health_status(args):
-
-    session = Session(baseurl = args.api_baseurl,
-                      port = args.api_port,
-                      username = args.api_username,
-                      password = args.api_password,
-                      verify = False if args.api_disable_tls_verification else True)
+def health_status(args, session):
 
     response = show.system(session)
     logger.debug(response)
