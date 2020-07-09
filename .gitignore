@@ -8,3 +8,4 @@ __pycache__/
 .nstorcli.conf*
 .portalcli.conf*
 tags
+.me4cli.conf*
