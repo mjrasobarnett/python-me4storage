@@ -31,4 +31,17 @@ def system_info(args, session):
     return rc.value
 
 
+def ntp(args, session):
+
+    modify.ntp(session,
+               status=args.status,
+               ntp_server=args.ntp_server,
+               timezone=args.timezone,)
+
+    commands.show.system_info(args, session)
+
+    rc = CheckResult.OK
+    return rc.value
+
+
 

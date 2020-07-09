@@ -27,3 +27,20 @@ def system_info(session,
     response = session.put('set/system',data)
     return response
 
+def ntp(session,
+        status=None,
+        ntp_server=None,
+        timezone=None,
+        ):
+
+    data = {}
+    if status is not None:
+        data['ntp'] = status
+    if ntp_server is not None:
+        data['ntpaddress'] = ntp_server
+    if timezone is not None:
+        data['timezone'] = timezone
+
+    response = session.put('set/ntp-parameters',data)
+    return response
+

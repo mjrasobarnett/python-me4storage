@@ -20,6 +20,7 @@ def system_info(args, session):
 
     systems = show.system(session)
     service_tags = show.service_tag_info(session)
+    ntp_instances = show.ntp_status(session)
 
     rc = CheckResult.OK
     for system in systems:
@@ -31,7 +32,13 @@ def system_info(args, session):
 
     print(f"\nService Tags:")
     for service_tag in service_tags:
-        print(f"  Enclosure:       {service_tag.enclosure_id} - {service_tag.service_tag}")
+        print(f"  Enclosure {service_tag.enclosure_id}:     {service_tag.service_tag}")
+
+    print(f"\nNTP:")
+    for ntp in ntp_instances:
+        print(f"  Status:          {ntp.ntp_status}")
+        print(f"  Server:          {ntp.ntp_server_address}")
+        print(f"  Time (UTC):      {ntp.ntp_contact_time}")
 
     return rc.value
 

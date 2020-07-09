@@ -190,6 +190,31 @@ def cli():
                 help="Location of the System"
                 )
 
+    set_ntp_p = set_subcommands.add_parser(name='ntp',
+                    parents=[auth_p],
+                    help='''set ntp parameters''')
+    subparsers.append(set_ntp_p)
+    set_ntp_p.set_defaults(func=commands.modify.ntp)
+    set_ntp_p.add_argument(
+                '--status',
+                dest="status",
+                choices=['enabled','disabled'],
+                default=None,
+                help="Enable/disable use of NTP"
+                )
+    set_ntp_p.add_argument(
+                '--ntp-server',
+                dest='ntp_server',
+                default=None,
+                help="IP/FQDN of NTP server"
+                )
+    set_ntp_p.add_argument(
+                '--timezone',
+                dest='timezone',
+                default=None,
+                help="Timezone offset, in hours (-12 to +14), from UTC"
+                )
+
     ####################################################################
     # SHOW subcommands
     ####################################################################
