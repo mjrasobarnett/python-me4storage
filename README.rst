@@ -33,14 +33,61 @@ https://github.com/pypa/pipenv ::
   pipenv install
   pipenv shell
 
-me4storage - EXAMPLE USAGE
-========================
+me4cli - EXAMPLE USAGE
+======================
 
 .. code-block:: bash
 
   # Create a config file for the API password (or enter this in the cli)
-  [mjr208@gw01]:~/ $ cat .me4storage.conf
-  [Auth]
-  api_user = manage
-  api_password = [REDACTED]
+  $ cat .me4cli.conf
+  [API]
+  api_baseurl = https://localhost
+  api_port = 9446
+  api_username = manage
+  api_password = changeme
+  api_disable_tls_verification = True
 
+
+.. code-block:: bash
+
+  $ me4cli -f .me4cli.conf show system-info
+  System: array-name
+    Product Type:    ME4084
+    Contact:         root@example.com
+    Description:     array-description
+    Location:        array-location
+
+  Service Tags:
+    Enclosure 0:     LKJD873
+
+  NTP:
+    Status:          activated
+    Server:          192.168.1.254
+    Time (UTC):      2020-03-01 16:11:05
+
+CLI Help page:
+
+.. code-block:: bash
+
+   $ me4cli --help
+   usage: me4cli [-h] [-f [CONFIG_FILES]] [--debug] [--quiet] [--nocolour]
+                 {check,set,show} ...
+
+   optional arguments:
+     -h, --help            show this help message and exit
+     -f [CONFIG_FILES], --config-files [CONFIG_FILES]
+                           Tool configuration file location (default:
+                           ['/etc/me4cli/me4cli.conf', '.me4cli.conf'])
+     --debug               Enable debug output
+     --quiet               Suppress all informational output, log at WARN level
+     --nocolour, --nocolor
+                           Strip ANSI color codes from all output to console
+
+   subcommands:
+     Below are the core subcommands of program:
+
+     {check,set,show}
+       check               check commands
+       set                 set commands
+       show                show commands
+  

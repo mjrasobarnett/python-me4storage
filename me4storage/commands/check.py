@@ -12,16 +12,21 @@ import me4storage.common.util as util
 import me4storage.common.tables as tables
 import me4storage.common.formatters
 
+from me4storage.api import show
+
 logger = logging.getLogger(__name__)
 
-def health_status(args):
+def health_status(args, session):
 
-    session = Session(baseurl = args.api_baseurl,
-                      port = args.api_port,
-                      version = args.api_version,
-                      username = args.api_username,
-                      password = args.api_password,
-                      verify = False if args.api_disable_tls_verification else True)
+    response = show.system(session)
+    logger.debug(response)
 
+    rc = CheckResult.OK
+    for system in response.get('system',[]):
+        print(f"System: {system['system-name']}")
+        print(f"\tHealth: {system['health']}")
+        print(f"\tProduct Type: {system['product-id']}")
+
+    return rc.value
 
 

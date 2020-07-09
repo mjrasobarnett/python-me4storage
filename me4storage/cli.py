@@ -13,6 +13,10 @@ from me4storage.common import util
 from me4storage.common.exceptions import UsageError
 from me4storage.common.nsca import CheckResult
 
+from me4storage.api.session import Session
+from me4storage import commands
+from me4storage.commands import check, modify, show
+
 def cli():
 
     # Parse configuration files present if any to get default values
@@ -28,7 +32,7 @@ def cli():
         '-f','--config-files',
         nargs='?',
         # Later files take precendence over earlier
-        default=['/etc/nstorcli/nstorcli.conf','.nstorcli.conf'],
+        default=['/etc/me4cli/me4cli.conf','.me4cli.conf'],
         help="Tool configuration file location (default: %(default)s)"
         )
     conf_parser.add_argument('--debug',
@@ -144,6 +148,91 @@ def cli():
     subparsers.append(check_health_p)
     check_health_p.set_defaults(func=commands.check.health_status)
 
+    ####################################################################
+    # SET subcommands
+    ####################################################################
+
+    # Top level subcommand
+    set_p = subcommands.add_parser(name='set',
+        help='''set commands''')
+    set_subcommands = set_p.add_subparsers(dest='set_subcommands',
+        title='subcommands of set',description='''
+        Below are the core subcommands of program:''')
+    set_subcommands.required = True
+
+    set_system_info_p = set_subcommands.add_parser(name='system-info',
+                    parents=[auth_p],
+                    help='''set system information (name, contact, desc)''')
+    subparsers.append(set_system_info_p)
+    set_system_info_p.set_defaults(func=commands.modify.system_info)
+    set_system_info_p.add_argument(
+                '--name',
+                dest='system_name',
+                default=None,
+                help="System name"
+                )
+    set_system_info_p.add_argument(
+                '--info',
+                dest='system_info',
+                default=None,
+                help="Description of what the system is used for"
+                )
+    set_system_info_p.add_argument(
+                '--contact',
+                dest='system_contact',
+                default=None,
+                help="System contact information for administrator"
+                )
+    set_system_info_p.add_argument(
+                '--location',
+                dest='system_location',
+                default=None,
+                help="Location of the System"
+                )
+
+    set_ntp_p = set_subcommands.add_parser(name='ntp',
+                    parents=[auth_p],
+                    help='''set ntp parameters''')
+    subparsers.append(set_ntp_p)
+    set_ntp_p.set_defaults(func=commands.modify.ntp)
+    set_ntp_p.add_argument(
+                '--status',
+                dest="status",
+                choices=['enabled','disabled'],
+                default=None,
+                help="Enable/disable use of NTP"
+                )
+    set_ntp_p.add_argument(
+                '--ntp-server',
+                dest='ntp_server',
+                default=None,
+                help="IP/FQDN of NTP server"
+                )
+    set_ntp_p.add_argument(
+                '--timezone',
+                dest='timezone',
+                default=None,
+                help="Timezone offset, in hours (-12 to +14), from UTC"
+                )
+
+    ####################################################################
+    # SHOW subcommands
+    ####################################################################
+
+    # Top level subcommand
+    show_p = subcommands.add_parser(name='show',
+        help='''show commands''')
+    show_subcommands = show_p.add_subparsers(dest='show_subcommands',
+        title='subcommands of show',description='''
+        Below are the core subcommands of program:''')
+    show_subcommands.required = True
+
+    show_system_info_p = show_subcommands.add_parser(name='system-info',
+                    parents=[auth_p],
+                    help='''show system information (name, contact, desc)''')
+    subparsers.append(show_system_info_p)
+    show_system_info_p.set_defaults(func=commands.show.system_info)
+
     #########
     # PARSE arguments
     #########
@@ -161,7 +250,13 @@ def cli():
 
     # Run subcommand function
     try:
-        rc = args.func(args)
+
+        session = Session(baseurl = args.api_baseurl,
+                          port = args.api_port,
+                          username = args.api_username,
+                          password = args.api_password,
+                          verify = False if args.api_disable_tls_verification else True)
+        rc = args.func(args, session)
     except Exception as e:
         # Print traceback if debug flag enabled
         if args.debug:

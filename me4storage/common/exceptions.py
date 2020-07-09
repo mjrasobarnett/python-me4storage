@@ -13,6 +13,13 @@ class LoginError(Exception):
 class ApiError(Exception):
     pass
 
+class ApiStatusError(Exception):
+
+    def __init__(self, msg, response):
+
+        super().__init__(msg)
+        self.response = response
+
 class NotFoundError(Exception):
     pass
 

@@ -125,6 +125,28 @@ def time_duration_formatter(x):
 
     return res
 
+def epoch_formatter(x, date_format=None):
+    """Convert epoch timestamp into date-time string.
+       However to conserve space in output leave out name of the day in week
+       and year information if the date belongs to current year.
+    """
+    if date_format is None:
+        date_format = 'short'
+    assert date_format in ['short', 'long'], 'Invalid format of date-time ' \
+                                             'requested'
+    if x == '':
+        return None
+
+    dt = datetime.fromtimestamp(x)
+    dt_fmt = locale.nl_langinfo(locale.D_T_FMT)
+
+    if date_format == 'short':
+        dt_fmt = dt_fmt.replace('%a', '').strip()  # remove day of the week
+        if dt.year == datetime.now().year:
+            dt_fmt = dt_fmt.replace('%Y', '').strip()  # remove current year
+
+    return dt.astimezone().strftime(dt_fmt)
+
 def date_time_formatter(x, date_format=None):
     """Convert ISO date-time to format dictated by locales.
        However to conserve space in output leave out name of the day in week

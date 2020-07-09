@@ -1,0 +1,7 @@
+[API]
+api_baseurl = https://localhost
+api_port = 9443
+api_username = manage
+api_password = changeme
+api_disable_tls_verification = True
+
