@@ -65,3 +65,29 @@ me4cli - EXAMPLE USAGE
     Server:          192.168.1.254
     Time (UTC):      2020-03-01 16:11:05
 
+CLI Help page:
+
+.. code-block:: bash
+
+   $ me4cli --help
+   usage: me4cli [-h] [-f [CONFIG_FILES]] [--debug] [--quiet] [--nocolour]
+                 {check,set,show} ...
+
+   optional arguments:
+     -h, --help            show this help message and exit
+     -f [CONFIG_FILES], --config-files [CONFIG_FILES]
+                           Tool configuration file location (default:
+                           ['/etc/me4cli/me4cli.conf', '.me4cli.conf'])
+     --debug               Enable debug output
+     --quiet               Suppress all informational output, log at WARN level
+     --nocolour, --nocolor
+                           Strip ANSI color codes from all output to console
+
+   subcommands:
+     Below are the core subcommands of program:
+
+     {check,set,show}
+       check               check commands
+       set                 set commands
+       show                show commands
+  
