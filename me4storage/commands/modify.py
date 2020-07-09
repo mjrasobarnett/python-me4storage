@@ -24,15 +24,13 @@ def system_info(args):
                       password = args.api_password,
                       verify = False if args.api_disable_tls_verification else True)
 
-    response = show.system(session)
-    logger.debug(response)
+    modify.system_info(session,
+                       name=args.system_name,
+                       info=args.system_info,
+                       contact=args.system_contact,
+                       location=args.system_location)
 
     rc = CheckResult.OK
-    for system in response.get('system',[]):
-        print(f"System: {system['system-name']}")
-        print(f"\tHealth: {system['health']}")
-        print(f"\tProduct Type: {system['product-id']}")
-
     return rc.value
 
 

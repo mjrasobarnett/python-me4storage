@@ -2,6 +2,7 @@ import logging
 import requests
 import distutils
 import hashlib
+import urllib
 
 from pprint import pformat
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -91,10 +92,41 @@ class Session:
                          f"response: \n{response.text}")
             raise LoginError("No session token received")
 
-    def _build_url(self, endpoint):
+    def _build_url(self, endpoint, data={}):
+        """ Format endpoint string and optional data parameters into compatible
+            ME4 API URL
+
+        The ME4 HTTP API expects any parameters provided to an endpoint to be
+        encoded in the URL, see:
+
+        https://www.dell.com/support/manuals/uk/en/ukbsdt1/powervault-me4012/me4_series_cli_pub/scripting-guidelines?guid=guid-7f2ef321-381c-432d-aa88-db7625e274cc&lang=en-us
+
+        eg:
+            * Command-line interface format: create user JSmith interfaces wbi password Abc#1379
+
+            * HTTPS interface format: create/user/JSmith/interfaces/wbi/password/Abc#1379
+
+        Thus, this function iterates over any provided parameters and encodes them into the URL
+        """
+
         url = f"{self.baseurl}:{self.port}/api/{endpoint}"
-        logger.debug(f"url: {url}")
-        return url
+        for key, value in data.items():
+            url = url + '/' + key + '/' + value
+
+        # Use urllib.parse.quote_plus to sanitise URL
+        # We use 'plus' encoding here for spaces, however the ME4 server
+        # interprets these literally, and inserts '+' into the value stored.
+        # Trying to use percent-encoding for spaces '%20' gives an error:
+        #
+        # ApiStatusError: Operation failed. rc: -10007. Response: The command had an invalid parameter or unrecognized parameter. - Invalid or ambiguous parameter found:
+        #
+        # Thus, despite the CLI supporting spaces in values, when double-quoted,
+        # I haven't found a way to support these in the HTTP api as yet, thus
+        # it is recommended to avoid the use of them.
+        logger.debug(f"raw url: {url}")
+        sanitised_url = urllib.parse.quote_plus(url, safe='/@_.,-~:"')
+        logger.debug(f"url: {sanitised_url}")
+        return sanitised_url
 
     @staticmethod
     def _raise_status(response):
@@ -148,5 +180,54 @@ class Session:
         data = self._get(url, params)
         if isinstance(data, list):
             raise RuntimeError(f'Bad object URL \'{url}\': expected an object, '
+                               f'got a collection of objects')
+        return data
+
+    def _put(self, url, data={}):
+
+        logger.debug("HTTP PUT: {}".format(url))
+        response = self.session.put(url,
+                                    verify=self.verify,
+                                    headers=self.headers,
+                                    timeout=self.timeout,
+                                    data=data,
+                                    )
+        # Throw exception if bad request (a 4XX client error or 5XX server error)
+        response.raise_for_status()
+
+        # Decode response from json
+        response_body = response.json()
+        logger.debug("Response:\n{}".format(pformat(response_body)))
+        logger.debug("Headers:\n{}".format(response.headers))
+
+        # Accorindg to Dell API guidelines all API responses
+        # contain a 'status' object, that we should check that
+        # the operation was successful
+        self._raise_status(response_body)
+
+        return response_body
+
+
+    def put(self, endpoint, data={}):
+        """ Modify API
+
+        Unfortunately the ME4 HTTP API, does not appear to support any requests
+        besides HTTP GET. In order to modify an API endpoint, you need to pass
+        parameters to the URL, see:
+
+        https://www.dell.com/support/manuals/uk/en/ukbsdt1/powervault-me4012/me4_series_cli_pub/scripting-guidelines?guid=guid-7f2ef321-381c-432d-aa88-db7625e274cc&lang=en-us
+
+        eg:
+            * Command-line interface format: create user JSmith interfaces wbi password Abc#1379
+
+            * HTTPS interface format: create/user/JSmith/interfaces/wbi/password/Abc#1379
+
+        Thus, this function is the same as 'get' above, just with the addition of providing
+        a dictionary of data parameters, which are encoded into the URL passed to the HTTP request
+        """
+
+        url = self._build_url(endpoint, data)
+        data = self._get(url, data)
+        if isinstance(data, list): raise RuntimeError(f'Bad object URL \'{url}\': expected an object, '
                                f'got a collection of objects')
         return data

@@ -164,6 +164,30 @@ def cli():
                     help='''set system information (name, contact, desc)''')
     subparsers.append(set_system_info_p)
     set_system_info_p.set_defaults(func=commands.modify.system_info)
+    set_system_info_p.add_argument(
+                '--name',
+                dest='system_name',
+                default=None,
+                help="System name"
+                )
+    set_system_info_p.add_argument(
+                '--info',
+                dest='system_info',
+                default=None,
+                help="Description of what the system is used for"
+                )
+    set_system_info_p.add_argument(
+                '--contact',
+                dest='system_contact',
+                default=None,
+                help="System contact information for administrator"
+                )
+    set_system_info_p.add_argument(
+                '--location',
+                dest='system_location',
+                default=None,
+                help="Location of the System"
+                )
 
     ####################################################################
     # SHOW subcommands
