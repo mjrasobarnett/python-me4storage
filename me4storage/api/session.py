@@ -20,7 +20,7 @@ class Session:
                  username,
                  password,
                  verify,
-                 timeout = 30,
+                 timeout = 60,
                  ):
 
         logger.debug("Init class Session")

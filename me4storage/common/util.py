@@ -1,6 +1,7 @@
 # pylint: disable-msg=C0103
 
 from __future__ import print_function
+import argparse
 import logging
 import sys
 import os
@@ -122,3 +123,17 @@ def truncate_string(input_string, max_length, trailing_suffix=''):
     value = input_string
     truncated_value = (value[:max_length] + trailing_suffix) if len(value) > max_length else value
     return truncated_value
+
+def required_length(nmin,nmax):
+    """
+    Argparse custom action to support variable number of arguments, i.e: 1 to 3
+    See: https://stackoverflow.com/a/4195302
+    """
+    class RequiredLength(argparse.Action):
+        def __call__(self, parser, args, values, option_string=None):
+            if not nmin<=len(values)<=nmax:
+                msg='argument "{f}" requires between {nmin} and {nmax} arguments'.format(
+                    f=self.dest,nmin=nmin,nmax=nmax)
+                raise argparse.ArgumentTypeError(msg)
+            setattr(args, self.dest, values)
+    return RequiredLength

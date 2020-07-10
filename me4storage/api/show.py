@@ -11,6 +11,7 @@ from me4storage.models.ntp_status import NTPStatus
 from me4storage.models.dns_parameters import DNSParameters
 from me4storage.models.mgmt_hostnames import MGMTHostnames
 from me4storage.models.network_parameters import NetworkParameters
+from me4storage.models.email_parameters import EmailParameters
 
 logger = logging.getLogger(__name__)
 
@@ -74,5 +75,14 @@ def network_parameters(session):
     results = []
     for _dict in response_body.get('network-parameters',[]):
         results.append(NetworkParameters(_dict))
+
+    return results
+
+def email_parameters(session):
+    response_body = session.get_object('show/email-parameters')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('email-parameters',[]):
+        results.append(EmailParameters(_dict))
 
     return results

@@ -98,3 +98,45 @@ def network(session,
 
     response = session.put('set/network-parameters',data)
     return response
+
+def support_assist(session,
+        status=None,
+        ):
+
+    data = {}
+    if status is not None:
+        # No parameter name here, the parameter is the value itself
+        # 'enabled' or 'disabled'
+        data[status] = None
+
+    response = session.put('set/support-assist',data)
+    return response
+
+def email(session,
+        domain=None,
+        recipients=None,
+        notification_level=None,
+        security_protocol=None,
+        port=None,
+        server=None,
+        sender=None,
+        ):
+
+    data = {}
+    if domain is not None:
+        data['domain'] = domain
+    if (recipients is not None) and isinstance(recipients, list):
+        data['email-list'] = ",".join(recipients)
+    if security_protocol is not None:
+        data['security-protocol'] = security_protocol
+    if notification_level is not None:
+        data['notification-level'] = notification_level
+    if port is not None:
+        data['port'] = port
+    if server is not None:
+        data['server'] = server
+    if sender is not None:
+        data['sender'] = sender
+
+    response = session.put('set/email-parameters',data)
+    return response

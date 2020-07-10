@@ -86,3 +86,28 @@ def network(args, session):
 
     rc = CheckResult.OK
     return rc.value
+
+def support_assist(args, session):
+
+    modify.support_assist(session,
+                   status=args.status
+                   )
+
+    rc = CheckResult.OK
+    return rc.value
+
+def email(args, session):
+
+    modify.email(session,
+                 domain=args.domain,
+                 recipients=args.recipients,
+                 security_protocol=args.security_protocol,
+                 notification_level=args.notification_level,
+                 port=args.port,
+                 server=args.server,
+                 sender=args.sender,
+                )
+    commands.show.notifications(args, session)
+
+    rc = CheckResult.OK
+    return rc.value

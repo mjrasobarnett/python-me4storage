@@ -269,6 +269,65 @@ def cli():
                 help="Netmask"
                 )
 
+    set_support_assist_p = set_subcommands.add_parser(name='support-assist',
+                    parents=[auth_p],
+                    help='''set support-assist on/off''')
+    subparsers.append(set_support_assist_p)
+    set_support_assist_p.set_defaults(func=commands.modify.support_assist)
+    set_support_assist_p.add_argument(
+                '--status',
+                required=True,
+                choices=['enabled','disabled'],
+                default='disabled',
+                help="Enable or Disable support-assist functionality (default: %(default)s)"
+                )
+
+    set_email_p = set_subcommands.add_parser(name='email',
+                    parents=[auth_p],
+                    help='''set email notification parameters''')
+    subparsers.append(set_email_p)
+    set_email_p.set_defaults(func=commands.modify.email)
+    set_email_p.add_argument(
+                '--domain',
+                required=True,
+                help="Sender domain"
+                )
+    set_email_p.add_argument(
+                '--recipients',
+                required=True,
+                nargs='+',
+                action=util.required_length(1,4),
+                help="Recipient emails for notifications"
+                )
+    set_email_p.add_argument(
+                '--security-protocol',
+                default='none',
+                choices=['tls','ssl','none'],
+                help="SMTP security protocol"
+                )
+    set_email_p.add_argument(
+                '--notification-level',
+                default='none',
+                choices=['crit','error','warn','resolved','info','none'],
+                help="Email notification level"
+                )
+    set_email_p.add_argument(
+                '--port',
+                default='25',
+                help="SMTP Server port. Default: 25"
+                )
+    set_email_p.add_argument(
+                '--server',
+                required=True,
+                help="SMTP Server"
+                )
+    set_email_p.add_argument(
+                '--sender',
+                required=True,
+                default=None,
+                help="Sender name, joinged with domain to form the 'from' address"
+                )
+
     ####################################################################
     # SHOW subcommands
     ####################################################################
@@ -292,6 +351,12 @@ def cli():
                     help='''show network information (IP, DNS, NTP)''')
     subparsers.append(show_network_p)
     show_network_p.set_defaults(func=commands.show.network)
+
+    show_notifications_p = show_subcommands.add_parser(name='notifications',
+                    parents=[auth_p],
+                    help='''show notifications information (email, SNMP, ...)''')
+    subparsers.append(show_notifications_p)
+    show_notifications_p.set_defaults(func=commands.show.notifications)
 
     #########
     # PARSE arguments

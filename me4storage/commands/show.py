@@ -80,5 +80,23 @@ def network(args, session):
 
     return rc.value
 
+def notifications(args, session):
 
+    systems = show.system(session)
+    email_params = show.email_parameters(session)
+
+    rc = CheckResult.OK
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+        print(f"\nEmail:")
+        for email in email_params:
+            print(f"  Status:        {email.email_notification}")
+            print(f"  Level:         {email.email_notification_filter}")
+            print(f"  Recipients:    {email.recipients}")
+            print(f"  SMTP Server:   {email.email_server}:{email.email_smtp_port}")
+            print(f"  Sender:        {email.email_sender}@{email.email_domain}")
+            print("")
+
+    return rc.value
 
