@@ -64,3 +64,25 @@ def dns(args, session):
 
     rc = CheckResult.OK
     return rc.value
+
+def network(args, session):
+
+    modify.network(session,
+                   controller='a',
+                   ip=args.controller_a_ip,
+                   gateway=args.gateway,
+                   netmask=args.netmask,
+                   )
+
+    modify.network(session,
+                   controller='b',
+                   ip=args.controller_b_ip,
+                   gateway=args.gateway,
+                   netmask=args.netmask,
+                   )
+
+    logger.warning("May take up to 2 minutes for updated network settings to dislay...")
+    commands.show.network(args, session)
+
+    rc = CheckResult.OK
+    return rc.value

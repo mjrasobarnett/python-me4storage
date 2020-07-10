@@ -239,6 +239,36 @@ def cli():
                 help="Ordered list of search domains"
                 )
 
+    set_network_p = set_subcommands.add_parser(name='network',
+                    parents=[auth_p],
+                    help='''set network parameters''')
+    subparsers.append(set_network_p)
+    set_network_p.set_defaults(func=commands.modify.network)
+    set_network_p.add_argument(
+                '--controller-a-ip',
+                required=True,
+                default=None,
+                help="Controller A management IPv4 address"
+                )
+    set_network_p.add_argument(
+                '--controller-b-ip',
+                required=True,
+                default=None,
+                help="Controller B management IPv4 address"
+                )
+    set_network_p.add_argument(
+                '--gateway',
+                required=True,
+                default=None,
+                help="Default Gateway"
+                )
+    set_network_p.add_argument(
+                '--netmask',
+                required=True,
+                default=None,
+                help="Netmask"
+                )
+
     ####################################################################
     # SHOW subcommands
     ####################################################################

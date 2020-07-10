@@ -10,6 +10,7 @@ from me4storage.models.service_tag_info import ServiceTagInfo
 from me4storage.models.ntp_status import NTPStatus
 from me4storage.models.dns_parameters import DNSParameters
 from me4storage.models.mgmt_hostnames import MGMTHostnames
+from me4storage.models.network_parameters import NetworkParameters
 
 logger = logging.getLogger(__name__)
 
@@ -64,5 +65,14 @@ def dns_management_hostname(session):
     results = []
     for _dict in response_body.get('mgmt-hostnames',[]):
         results.append(MGMTHostnames(_dict))
+
+    return results
+
+def network_parameters(session):
+    response_body = session.get_object('show/network-parameters')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('network-parameters',[]):
+        results.append(NetworkParameters(_dict))
 
     return results

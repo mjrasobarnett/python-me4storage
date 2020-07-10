@@ -111,9 +111,14 @@ class Session:
 
         url = f"{self.baseurl}:{self.port}/api/{endpoint}"
         for key, value in data.items():
-            # Note we quote the value here as the ME4 API expects this for
-            # any values with spaces in them
-            url = url + '/' + key + '/' + '"' + value + '"'
+            if value is not None:
+                # Note we quote the value here as the ME4 API expects this for
+                # any values with spaces in them
+                url = url + '/' + key + '/' + '"' + value + '"'
+            else:
+                # If value is None, it is a parameter without a value
+                # so just insert parameter name into the URL
+                url = url + '/' + key
 
         # Use urllib.parse.quote to sanitise URL
         sanitised_url = urllib.parse.quote(url, safe='/@_.,-~:"')

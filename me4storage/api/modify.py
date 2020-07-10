@@ -75,3 +75,26 @@ def dns(session,
     response = session.put('set/dns-parameters',data)
     return response
 
+def network(session,
+        controller=None,
+        dhcp=None,
+        ip=None,
+        gateway=None,
+        netmask=None,
+        ):
+
+    data = {}
+    if controller is not None:
+        data['controller'] = controller
+    if dhcp is not None:
+        # 'dhcp' doesn't take a value, provide None to omit this
+        data['dhcp'] = None
+    if ip is not None:
+        data['ip'] = ip
+    if gateway is not None:
+        data['gateway'] = gateway
+    if netmask is not None:
+        data['netmask'] = netmask
+
+    response = session.put('set/network-parameters',data)
+    return response
