@@ -198,6 +198,7 @@ def cli():
     set_ntp_p.add_argument(
                 '--status',
                 dest="status",
+                required=True,
                 choices=['enabled','disabled'],
                 default=None,
                 help="Enable/disable use of NTP"
@@ -205,6 +206,7 @@ def cli():
     set_ntp_p.add_argument(
                 '--ntp-server',
                 dest='ntp_server',
+                required=True,
                 default=None,
                 help="IP/FQDN of NTP server"
                 )
@@ -213,6 +215,28 @@ def cli():
                 dest='timezone',
                 default=None,
                 help="Timezone offset, in hours (-12 to +14), from UTC"
+                )
+
+    set_dns_p = set_subcommands.add_parser(name='dns',
+                    parents=[auth_p],
+                    help='''set dns parameters''')
+    subparsers.append(set_dns_p)
+    set_dns_p.set_defaults(func=commands.modify.dns)
+    set_dns_p.add_argument(
+                '--name-servers',
+                dest='name_servers',
+                required=True,
+                nargs='*',
+                default=None,
+                help="Ordered list of name server addresses"
+                )
+    set_dns_p.add_argument(
+                '--search-domains',
+                dest='search_domains',
+                required=True,
+                nargs='*',
+                default=None,
+                help="Ordered list of search domains"
                 )
 
     ####################################################################
@@ -232,6 +256,12 @@ def cli():
                     help='''show system information (name, contact, desc)''')
     subparsers.append(show_system_info_p)
     show_system_info_p.set_defaults(func=commands.show.system_info)
+
+    show_network_p = show_subcommands.add_parser(name='network',
+                    parents=[auth_p],
+                    help='''show network information (IP, DNS, NTP)''')
+    subparsers.append(show_network_p)
+    show_network_p.set_defaults(func=commands.show.network)
 
     #########
     # PARSE arguments

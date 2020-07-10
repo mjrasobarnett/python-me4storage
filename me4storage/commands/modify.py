@@ -25,6 +25,16 @@ def system_info(args, session):
                        contact=args.system_contact,
                        location=args.system_location)
 
+    controller_a_name = args.system_name + '-c0'
+    controller_b_name = args.system_name + '-c1'
+
+    modify.dns_management_hostname(session,
+                                   controller='a',
+                                   name=controller_a_name)
+    modify.dns_management_hostname(session,
+                                   controller='b',
+                                   name=controller_b_name)
+
     commands.show.system_info(args, session)
 
     rc = CheckResult.OK
@@ -38,10 +48,19 @@ def ntp(args, session):
                ntp_server=args.ntp_server,
                timezone=args.timezone,)
 
-    commands.show.system_info(args, session)
+    commands.show.network(args, session)
 
     rc = CheckResult.OK
     return rc.value
 
+def dns(args, session):
 
+    modify.dns(session,
+               controller='both',
+               name_servers=args.name_servers,
+               search_domains=args.search_domains,)
 
+    commands.show.network(args, session)
+
+    rc = CheckResult.OK
+    return rc.value

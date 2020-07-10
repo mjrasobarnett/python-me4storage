@@ -34,11 +34,35 @@ def system_info(args, session):
     for service_tag in service_tags:
         print(f"  Enclosure {service_tag.enclosure_id}:     {service_tag.service_tag}")
 
-    print(f"\nNTP:")
-    for ntp in ntp_instances:
-        print(f"  Status:          {ntp.ntp_status}")
-        print(f"  Server:          {ntp.ntp_server_address}")
-        print(f"  Time (UTC):      {ntp.ntp_contact_time}")
+    return rc.value
+
+
+
+def network(args, session):
+
+    systems = show.system(session)
+    ntp_instances = show.ntp_status(session)
+    dns_instances = show.dns(session)
+    hostnames = show.dns_management_hostname(session)
+
+    rc = CheckResult.OK
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+        print(f"\nNTP:")
+        for ntp in ntp_instances:
+            print(f"  Status:          {ntp.ntp_status}")
+            print(f"  Server:          {ntp.ntp_server_address}")
+            print(f"  Time (UTC):      {ntp.ntp_contact_time}")
+
+        print(f"\nDNS:")
+        for dns in dns_instances:
+            print(f"  Controller:        {dns.controller_numeric}")
+            for mgmt in hostnames:
+                if dns.controller_numeric == mgmt.controller_numeric:
+                    print(f"    Mgmt Hostname:   {mgmt.mgmt_hostname}")
+            print(f"    Server(s):       {dns.name_servers}")
+            print(f"    Search Domains:  {dns.search_domains}")
 
     return rc.value
 

@@ -44,3 +44,34 @@ def ntp(session,
     response = session.put('set/ntp-parameters',data)
     return response
 
+def dns_management_hostname(session,
+        controller=None,
+        name=None,
+        ):
+
+    data = {}
+    if controller is not None:
+        data['controller'] = controller
+    if name is not None:
+        data['name'] = name
+
+    response = session.put('set/dns-management-hostname',data)
+    return response
+
+def dns(session,
+        controller=None,
+        name_servers=None,
+        search_domains=None,
+        ):
+
+    data = {}
+    if controller is not None:
+        data['controller'] = controller
+    if (name_servers is not None) and isinstance(name_servers, list):
+        data['nameservers'] = ",".join(name_servers)
+    if (search_domains is not None) and isinstance(search_domains, list):
+        data['search-domains'] = ",".join(search_domains)
+
+    response = session.put('set/dns-parameters',data)
+    return response
+

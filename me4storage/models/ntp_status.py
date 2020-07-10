@@ -6,7 +6,7 @@ import me4storage.common.formatters as formatters
 
 logger = logging.getLogger(__name__)
 
-class NtpStatus(Model):
+class NTPStatus(Model):
     ''' Class to represent the ntp-status model from the ME4 API
     https://www.dell.com/support/manuals/uk/en/powervault-me4012/powervault-me4012/me4_series_cli_pub/ntp-status?guid=guid-b95cb077-a24e-47f3-ac8e-885979649d23&lang=en-us
     '''

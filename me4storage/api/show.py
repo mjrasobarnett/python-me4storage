@@ -7,7 +7,9 @@ from me4storage.common.exceptions import ApiError
 from me4storage.models.system import System
 from me4storage.models.license import License
 from me4storage.models.service_tag_info import ServiceTagInfo
-from me4storage.models.ntp_status import NtpStatus
+from me4storage.models.ntp_status import NTPStatus
+from me4storage.models.dns_parameters import DNSParameters
+from me4storage.models.mgmt_hostnames import MGMTHostnames
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,24 @@ def ntp_status(session):
     # iterate over list of results and instantiate model object for each entry
     results = []
     for _dict in response_body.get('ntp-status',[]):
-        results.append(NtpStatus(_dict))
+        results.append(NTPStatus(_dict))
+
+    return results
+
+def dns(session):
+    response_body = session.get_object('show/dns-parameters')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('dns-parameters',[]):
+        results.append(DNSParameters(_dict))
+
+    return results
+
+def dns_management_hostname(session):
+    response_body = session.get_object('show/dns-management-hostname')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('mgmt-hostnames',[]):
+        results.append(MGMTHostnames(_dict))
 
     return results
