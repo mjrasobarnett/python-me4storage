@@ -1,6 +1,6 @@
 from terminaltables import SingleTable
 
-def display_table(header, items, style='default'):
+def display_table(header, items, style='default', column_padding=None):
     """
     Display a list of items as a table with a header.
     Following style are supported:
@@ -14,7 +14,7 @@ def display_table(header, items, style='default'):
     """
     if not items:
         return
-    t = format_table(header, items, style)
+    t = format_table(header, items, style, column_padding)
     print(t)
 
 def format_table(header, items, style='default', column_padding=None):

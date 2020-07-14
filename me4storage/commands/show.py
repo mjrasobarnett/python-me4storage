@@ -13,6 +13,7 @@ import me4storage.common.tables as tables
 import me4storage.common.formatters
 
 from me4storage.api import show
+import me4storage.common.tables as tables
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,93 @@ def notifications(args, session):
             print(f"  SMTP Server:   {email.email_server}:{email.email_smtp_port}")
             print(f"  Sender:        {email.email_sender}@{email.email_domain}")
             print("")
+
+    return rc.value
+
+def storage(args, session):
+
+    systems = show.system(session)
+    disk_groups = show.disk_groups(session, detail=True)
+
+    rc = CheckResult.OK
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+    if args.detailed:
+        # Print disks for each pool
+        for dg in disk_groups:
+
+            print(f"\n{Fore.WHITE}{Style.BRIGHT}Disk Group: {dg.name}{Style.RESET_ALL}")
+            print(f"  Health:        {dg.health}")
+            print(f"  Size:          {dg.size}")
+            print(f"  Storage Type:  {dg.storage_type}")
+            print(f"  Raid Level:    {dg.raidtype}")
+            print(f"\n{Fore.WHITE}{Style.BRIGHT}Disks:{Style.RESET_ALL}")
+            disks = show.disks(session, disk_groups=[dg.name])
+
+            # List of columns to print, as a tuple of attribute name,
+            # and column title
+            columns = [('location','Location'),
+                       ('serial_number','Serial'),
+                       ('vendor','Vendor'),
+                       ('revision','Rev'),
+                       ('interface','Interface'),
+                       ('size','Size'),
+                       ('status','Status'),
+                       ('health','Health'),
+                       ('architecture','Type'),
+                       ('owner','Owner'),
+                       ]
+            # Extract titles for table header
+            table_header = [x[1] for x in columns]
+            table_rows = []
+            for disk in disks:
+                row = []
+                for attribute, title in columns:
+                    try:
+                        row.append(getattr(disk,attribute))
+                    except AttributeError as err:
+                        raise ApiError("No attribute '{}' in disk "
+                                       "definition:\n{}".format(
+                                            attribute,
+                                            pformat(disk),
+                                            ))
+
+                table_rows.append(row)
+
+            # Print table
+            tables.display_table(table_header, table_rows, style='bordered')
+
+    else:
+        # List of columns to print, as a tuple of attribute name,
+        # and column title
+        columns = [('name','Name'),
+                   ('health','Health'),
+                   ('size','Size'),
+                   ('storage_type','Type'),
+                   ('raidtype','Raid Level'),
+                   ]
+
+        # Extract titles for table header
+        table_header = [x[1] for x in columns]
+        table_rows = []
+
+        for dg in disk_groups:
+            row = []
+            for attribute, title in columns:
+                try:
+                    row.append(getattr(dg,attribute))
+                except AttributeError as err:
+                    raise ApiError("No attribute '{}' in disk-group "
+                                   "definition:\n{}".format(
+                                        attribute,
+                                        pformat(dg),
+                                        ))
+
+            table_rows.append(row)
+
+        # Print table
+        tables.display_table(table_header, table_rows, style='bordered')
 
     return rc.value
 

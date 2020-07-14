@@ -15,7 +15,7 @@ from me4storage.common.nsca import CheckResult
 
 from me4storage.api.session import Session
 from me4storage import commands
-from me4storage.commands import check, modify, show
+from me4storage.commands import check, modify, show, configure, delete
 
 def cli():
 
@@ -357,6 +357,78 @@ def cli():
                     help='''show notifications information (email, SNMP, ...)''')
     subparsers.append(show_notifications_p)
     show_notifications_p.set_defaults(func=commands.show.notifications)
+
+    show_storage_p = show_subcommands.add_parser(name='storage',
+                    parents=[auth_p],
+                    help='''show storage information ''')
+    subparsers.append(show_storage_p)
+    show_storage_p.set_defaults(func=commands.show.storage)
+    show_storage_p.add_argument(
+                '--detailed',
+                action='store_true',
+                help="Show more detailed information"
+                )
+
+    ####################################################################
+    # CONFIGURE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    configure_p = subcommands.add_parser(name='configure',
+        help='''configure commands''')
+    configure_subcommands = configure_p.add_subparsers(dest='configure_subcommands',
+        title='subcommands of configure',description='''
+        Below are the core subcommands of program:''')
+    configure_subcommands.required = True
+
+    layout_p = configure_subcommands.add_parser(name='disk-layout',
+        help='''disk-layout commands''')
+    layout_subcommands = layout_p.add_subparsers(dest='disk_subcommands',
+        title='subcommands of disk-layout',description='''
+        Below are subcommands of disk-layout:''')
+    layout_subcommands.required = True
+
+    me4084_linear_layout_p = layout_subcommands.add_parser(name='me4084-linear-raid6',
+                    parents=[auth_p],
+                    help='''Configures ME4084 disk groups using typical '''
+                         '''layout for Lustre OSTs - Provisions 8x 10-disk '''
+                         '''Linear Raid6 volumes with a 1MiB stripe-width.''')
+    subparsers.append(me4084_linear_layout_p)
+    me4084_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4084_linear_raid6)
+
+    ####################################################################
+    # DELETE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    delete_p = subcommands.add_parser(name='delete',
+        help='''delete commands''')
+    delete_subcommands = delete_p.add_subparsers(dest='delete_subcommands',
+        title='subcommands of delete',description='''
+        Below are the core subcommands of program:''')
+    delete_subcommands.required = True
+
+    delete_pool_p = delete_subcommands.add_parser(name='pool',
+                    parents=[auth_p],
+                    help='''Delete pool''')
+    subparsers.append(delete_pool_p)
+    delete_pool_p.set_defaults(func=commands.delete.pool)
+
+    delete_pool_g = delete_pool_p.add_mutually_exclusive_group(required=True)
+    delete_pool_g.add_argument(
+                '--name',
+                required=False,
+                nargs='*',
+                default=None,
+                dest='delete_pool_names',
+                help="Pools to delete"
+                )
+    delete_pool_g.add_argument(
+                '--all',
+                action='store_true',
+                dest='delete_pool_all',
+                help="Delete all pools present"
+                )
 
     #########
     # PARSE arguments

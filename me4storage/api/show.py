@@ -12,6 +12,9 @@ from me4storage.models.dns_parameters import DNSParameters
 from me4storage.models.mgmt_hostnames import MGMTHostnames
 from me4storage.models.network_parameters import NetworkParameters
 from me4storage.models.email_parameters import EmailParameters
+from me4storage.models.disk_group import DiskGroup
+from me4storage.models.pool import Pool
+from me4storage.models.disk import Disk
 
 logger = logging.getLogger(__name__)
 
@@ -84,5 +87,52 @@ def email_parameters(session):
     results = []
     for _dict in response_body.get('email-parameters',[]):
         results.append(EmailParameters(_dict))
+
+    return results
+
+def pools(session, pool_type=None, name=None):
+    params = {}
+    if pool_type is not None:
+        params['type'] = pool_type
+    if name is not None:
+        params[name] = None
+
+    response_body = session.get_object('show/pools',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('pools',[]):
+        results.append(Pool(_dict))
+
+    return results
+
+def disk_groups(session, detail=None, pool_name=None, disk_groups=None):
+    params = {}
+    if detail is not None:
+        params['detail'] = None
+    if pool_name is not None:
+        params['pool'] = pool_name
+    if (disk_groups is not None) and isinstance(disk_groups, list):
+        params['disk-groups'] = ",".join(disk_groups)
+
+    response_body = session.get_object('show/disk-groups',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('disk-groups',[]):
+        results.append(DiskGroup(_dict))
+
+    return results
+
+def disks(session, detail=None, disk_groups=None):
+    params = {}
+    if detail is not None:
+        params['detail'] = None
+    if (disk_groups is not None) and isinstance(disk_groups, list):
+        params['disk-group'] = ",".join(disk_groups)
+
+    response_body = session.get_object('show/disks',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('drives',[]):
+        results.append(Disk(_dict))
 
     return results

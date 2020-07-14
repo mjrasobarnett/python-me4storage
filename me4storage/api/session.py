@@ -80,7 +80,6 @@ class Session:
                 )
 
         logger.debug("Response:\n{}".format(response.text))
-        logger.debug("Headers:\n{}".format(response.headers))
         response.raise_for_status()
 
         response_body = response.json()
@@ -160,7 +159,6 @@ class Session:
         # Decode response from json
         response_body = response.json()
         logger.debug("Response:\n{}".format(pformat(response_body)))
-        logger.debug("Headers:\n{}".format(response.headers))
 
         # Accorindg to Dell API guidelines all API responses
         # contain a 'status' object, that we should check that
@@ -173,7 +171,7 @@ class Session:
     def get_object(self, endpoint, params={}):
         """ Get a single object from API """
 
-        url = self._build_url(endpoint)
+        url = self._build_url(endpoint, params)
         data = self._get(url, params)
         if isinstance(data, list):
             raise RuntimeError(f'Bad object URL \'{url}\': expected an object, '
@@ -195,7 +193,6 @@ class Session:
         # Decode response from json
         response_body = response.json()
         logger.debug("Response:\n{}".format(pformat(response_body)))
-        logger.debug("Headers:\n{}".format(response.headers))
 
         # Accorindg to Dell API guidelines all API responses
         # contain a 'status' object, that we should check that
