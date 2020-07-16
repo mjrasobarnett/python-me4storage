@@ -54,6 +54,7 @@ def cli():
 
     # Set log level
     logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
     if args.quiet:
         logger.setLevel(logging.WARN)
     if args.debug:
