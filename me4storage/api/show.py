@@ -16,6 +16,8 @@ from me4storage.models.disk_group import DiskGroup
 from me4storage.models.pool import Pool
 from me4storage.models.disk import Disk
 from me4storage.models.volume import Volume
+from me4storage.models.initiator import Initiator
+from me4storage.models.host_group import HostGroup
 
 logger = logging.getLogger(__name__)
 
@@ -156,5 +158,35 @@ def disks(session, detail=None, disk_groups=None):
     results = []
     for _dict in response_body.get('drives',[]):
         results.append(Disk(_dict))
+
+    return results
+
+def initiators(session, hosts=None, initiators=None):
+    params = {}
+    if (hosts is not None) and isinstance(hosts, list):
+        params['hosts'] = ",".join(hosts)
+    if (initiators is not None) and isinstance(initiators, list):
+        params[",".join(initiators)] = None
+
+    response_body = session.get_object('show/initiators',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('initiator',[]):
+        results.append(Initiator(_dict))
+
+    return results
+
+def host_groups(session, hosts=None, initiators=None):
+    params = {}
+    if (hosts is not None) and isinstance(hosts, list):
+        params['hosts'] = ",".join(hosts)
+    if (initiators is not None) and isinstance(initiators, list):
+        params['initiators'] = ",".join(initiators)
+
+    response_body = session.get_object('show/host-groups',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('host-group',[]):
+        results.append(HostGroup(_dict))
 
     return results

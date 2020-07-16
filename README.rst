@@ -90,4 +90,27 @@ CLI Help page:
        check               check commands
        set                 set commands
        show                show commands
-  
+
+Example Array Setup
+===================
+
+.. code-block:: bash
+
+  (me4storage) [matt@yoshimo]:me4storage/ (master *%>) $ me4cli -f .me4cli.conf.rds-ost-jb52 delete host-configuration
+  [INFO] Found configuration files: ['.me4cli.conf.rds-ost-jb52']
+  [INFO] Deleting all host groups present...
+  [INFO] Deleting all initiator nicknames...
+
+  (me4storage) [matt@yoshimo]:me4storage/ (master *%>) $ me4cli -f .me4cli.conf.rds-ost-jb52 configure host rds-oss51 --port-wwpn 0x54cd98f0c83fbe00 0x54cd98f0c83ffe00
+  [INFO] Found configuration files: ['.me4cli.conf.rds-ost-jb52']
+  [INFO] Setting initiator nickname: rds-oss51-P0 to 54cd98f0c83fbe00
+  [INFO] Setting initiator nickname: rds-oss51-P1 to 54cd98f0c83ffe00
+  [INFO] Creating host: rds-oss51...
+  [INFO] Creating host group: hg-rds-ost-jb52...
+
+  (me4storage) [matt@yoshimo]:me4storage/ (master *%>) $ me4cli -f .me4cli.conf.rds-ost-jb52 configure host rds-oss52 --port-wwpn 0x54cd98f0c83ed500 0x54cd98f0c83faf00
+  [INFO] Found configuration files: ['.me4cli.conf.rds-ost-jb52']
+  [INFO] Setting initiator nickname: rds-oss52-P0 to 54cd98f0c83ed500
+  [INFO] Setting initiator nickname: rds-oss52-P1 to 54cd98f0c83faf00
+  [INFO] Creating host: rds-oss52...
+  [INFO] Adding rds-oss52 to host group: hg-rds-ost-jb52...

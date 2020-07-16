@@ -227,3 +227,84 @@ def storage(args, session):
     rc = CheckResult.OK
     return rc.value
 
+
+def hosts(args, session):
+
+    systems = show.system(session)
+
+    host_groups = show.host_groups(session)
+    initiators = show.initiators(session)
+
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+    for host_group in host_groups:
+        print(f"\n{Fore.WHITE}{Style.BRIGHT}Host Group: {host_group.name}{Style.RESET_ALL}")
+
+        hosts = host_group.hosts
+        # List of columns to print, as a tuple of attribute name,
+        # and column title
+        columns = [('durable_id','ID'),
+                   ('name','Name'),
+                   ('member_count','Initiators'),
+                   ('serial_number','Serial'),
+                   ]
+
+        # Extract titles for table header
+        table_header = [x[1] for x in columns]
+        table_rows = []
+
+        for host in hosts:
+            row = []
+            for attribute, title in columns:
+                try:
+                    row.append(getattr(host,attribute))
+                except AttributeError as err:
+                    raise ApiError("No attribute '{}' in host "
+                                   "definition:\n{}".format(
+                                        attribute,
+                                        pformat(host),
+                                        ))
+
+            table_rows.append(row)
+
+        # Print table
+        tables.display_table(table_header, table_rows, style='bordered')
+
+
+    print(f"\n{Fore.WHITE}{Style.BRIGHT}Initiators:{Style.RESET_ALL}")
+    # List of columns to print, as a tuple of attribute name,
+    # and column title
+    columns = [('durable_id','id'),
+               ('nickname','name'),
+               ('host_bus_type','Type'),
+               ('id','WWPN/IQN'),
+               ('discovered','Discovered'),
+               ('mapped','Mapped'),
+               ('host_id','Host'),
+               ('host_key','Host Key'),
+               ]
+
+    # Extract titles for table header
+    table_header = [x[1] for x in columns]
+    table_rows = []
+
+    for initiator in initiators:
+        row = []
+        for attribute, title in columns:
+            try:
+                row.append(getattr(initiator,attribute))
+            except AttributeError as err:
+                raise ApiError("No attribute '{}' in initiator "
+                               "definition:\n{}".format(
+                                    attribute,
+                                    pformat(initiator),
+                                    ))
+
+        table_rows.append(row)
+
+    # Print table
+    tables.display_table(table_header, table_rows, style='bordered')
+
+    rc = CheckResult.OK
+    return rc.value

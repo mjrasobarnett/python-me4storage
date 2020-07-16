@@ -140,3 +140,16 @@ def email(session,
 
     response = session.put('set/email-parameters',data)
     return response
+
+def initiator(session,
+              initiator_id,
+              nickname=None,
+              ):
+
+    data = {}
+    data['id'] = initiator_id
+    if nickname is not None:
+        data['nickname'] = nickname
+
+    response = session.put('set/initiator',data)
+    return response

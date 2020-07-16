@@ -20,4 +20,29 @@ def pools(session,
     response = session.put('delete/pools',data)
     return response
 
+def host_groups(session,
+                names,
+                delete_hosts=None,
+                ):
+
+    data = {}
+
+    if delete_hosts is not None:
+        data['delete-hosts'] = None
+    if isinstance(names, list):
+        names_str = ",".join(names)
+        data[names_str] = None
+
+    response = session.put('delete/host-groups',data)
+    return response
+
+def initiator_nickname(session,
+                       name,
+                       ):
+
+    data = {}
+    data[name] = None
+    response = session.put('delete/initiator-nickname',data)
+    return response
+
 

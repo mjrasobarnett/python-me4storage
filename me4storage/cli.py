@@ -370,6 +370,12 @@ def cli():
                 help="Show more detailed information"
                 )
 
+    show_hosts_p = show_subcommands.add_parser(name='hosts',
+                    parents=[auth_p],
+                    help='''show hosts information ''')
+    subparsers.append(show_hosts_p)
+    show_hosts_p.set_defaults(func=commands.show.hosts)
+
     ####################################################################
     # CONFIGURE subcommands
     ####################################################################
@@ -397,6 +403,28 @@ def cli():
     subparsers.append(me4084_linear_layout_p)
     me4084_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4084_linear_raid6)
 
+    configure_host_p = configure_subcommands.add_parser(name='host',
+                    parents=[auth_p],
+                    help='''show hosts information ''')
+    subparsers.append(configure_host_p)
+    configure_host_p.set_defaults(func=commands.configure.host)
+    configure_host_p.add_argument(
+                '--host-group',
+                default=None,
+                help="Name of host-group to attach host to. Will "
+                     "create hostgroup with default name if not defined."
+                )
+    configure_host_p.add_argument(
+                'name',
+                help="Name of host"
+                )
+    configure_host_p.add_argument(
+                '--port-wwpn',
+                required=True,
+                nargs='+',
+                help="List of initiator ports to attach to host"
+                )
+
     ####################################################################
     # DELETE subcommands
     ####################################################################
@@ -408,6 +436,18 @@ def cli():
         title='subcommands of delete',description='''
         Below are the core subcommands of program:''')
     delete_subcommands.required = True
+
+    delete_configuration_p = delete_subcommands.add_parser(name='configuration',
+                    parents=[auth_p],
+                    help='''Delete all configuration, including storage''')
+    subparsers.append(delete_configuration_p)
+    delete_configuration_p.set_defaults(func=commands.delete.configuration)
+
+    delete_host_configuration_p = delete_subcommands.add_parser(name='host-configuration',
+                    parents=[auth_p],
+                    help='''Delete all host configuration''')
+    subparsers.append(delete_host_configuration_p)
+    delete_host_configuration_p.set_defaults(func=commands.delete.host_configuration)
 
     delete_pool_p = delete_subcommands.add_parser(name='pool',
                     parents=[auth_p],
@@ -429,6 +469,35 @@ def cli():
                 action='store_true',
                 dest='delete_pool_all',
                 help="Delete all pools present"
+                )
+
+    delete_host_group_p = delete_subcommands.add_parser(name='host-group',
+                    parents=[auth_p],
+                    help='''Delete host group''')
+    subparsers.append(delete_host_group_p)
+    delete_host_group_p.set_defaults(func=commands.delete.host_group)
+    delete_host_group_p.add_argument(
+                '--delete-hosts',
+                action='store_true',
+                default=None,
+                dest='delete_host_group_hosts',
+                help="Also delete all hosts in the group"
+                )
+
+    delete_host_group_g = delete_host_group_p.add_mutually_exclusive_group(required=True)
+    delete_host_group_g.add_argument(
+                '--name',
+                required=False,
+                nargs='*',
+                default=None,
+                dest='delete_host_group_names',
+                help="hosts to delete"
+                )
+    delete_host_group_g.add_argument(
+                '--all',
+                action='store_true',
+                dest='delete_host_group_all',
+                help="Delete all host groups present"
                 )
 
     #########

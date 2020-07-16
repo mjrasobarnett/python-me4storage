@@ -13,7 +13,7 @@ import me4storage.common.util as util
 import me4storage.common.tables as tables
 import me4storage.common.formatters
 
-from me4storage.api import show, modify, create
+from me4storage.api import show, modify, create, add
 from me4storage import commands
 
 logger = logging.getLogger(__name__)
@@ -94,3 +94,56 @@ def disk_layout_me4084_linear_raid6(args, session):
 
     rc = CheckResult.OK
     return rc.value
+
+def host(args, session):
+
+    systems = show.system(session)
+    system_name = systems[0].system_name
+
+    initiators = show.initiators(session)
+    # Sanitise input, remove leading '0x' if present, and remove whitespace
+    host_name = args.name.strip()
+    port_wwpns = [wwpn.lstrip('0x').strip() for wwpn in args.port_wwpn]
+
+    for index, wwpn in enumerate(port_wwpns):
+        if wwpn not in [initiator.id for initiator in initiators]:
+            logger.error(f"Supplied port WWPN: {wwpn} is not discovered by storage")
+            rc = CheckResult.CRITICAL
+            return rc.value
+
+        # Define initiator name - required to be set before adding to host
+        nickname = f"{host_name}-P{index}"
+        if nickname not in [initiator.nickname for initiator in initiators]:
+            logger.info(f"Setting initiator nickname: {nickname} to {wwpn}")
+            modify.initiator(session,
+                             initiator_id=wwpn,
+                             nickname=nickname,
+                             )
+        else:
+            logger.warning(f"Nickname: {nickname} is already set")
+
+    logger.info(f"Creating host: {args.name}...")
+    create.host(session,
+                name=args.name,
+                initiators=port_wwpns)
+
+    if args.host_group is None:
+        host_group = f"hg-{system_name}"
+    else:
+        host_group = args.host_group.str()
+
+    host_groups = show.host_groups(session)
+    if host_group not in [hg.name for hg in host_groups]:
+        logger.info(f"Creating host group: {host_group}...")
+        create.host_group(session,
+                          name=host_group,
+                          hosts=[host_name])
+    else:
+        logger.info(f"Adding {host_name} to host group: {host_group}...")
+        add.host_group_members(session,
+                               name=host_group,
+                               hosts=[host_name])
+
+    rc = CheckResult.OK
+    return rc.value
+

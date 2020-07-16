@@ -47,3 +47,33 @@ def linear_volume(session,
     response = session.put('create/volume',data)
     return response
 
+def host(session,
+         name,
+         host_group=None,
+         initiators=None,
+         ):
+
+    data = {}
+
+    data[name] = None
+    if host_group is not None:
+        data['host_group'] = host_group
+    if (initiators is not None) and isinstance(initiators, list):
+        data['initiators'] = ",".join(initiators)
+
+    response = session.put('create/host',data)
+    return response
+
+def host_group(session,
+         name,
+         hosts,
+         ):
+
+    data = {}
+
+    data[name] = None
+    if isinstance(hosts, list):
+        data['hosts'] = ",".join(hosts)
+
+    response = session.put('create/host-group',data)
+    return response
