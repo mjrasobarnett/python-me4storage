@@ -106,7 +106,6 @@ def storage(args, session):
     systems = show.system(session)
     disk_groups = show.disk_groups(session, detail=True)
 
-    rc = CheckResult.OK
     for system in systems:
         print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
 
@@ -119,6 +118,45 @@ def storage(args, session):
             print(f"  Size:          {dg.size}")
             print(f"  Storage Type:  {dg.storage_type}")
             print(f"  Raid Level:    {dg.raidtype}")
+
+            #######################################
+            # PRINT Table of Volumes
+            print(f"\n{Fore.WHITE}{Style.BRIGHT}Volumes:{Style.RESET_ALL}")
+            volumes = show.volumes(session, disk_groups=[dg.name])
+            # List of columns to print, as a tuple of attribute name,
+            # and column title
+            columns = [('volume_name','Name'),
+                       ('virtual_disk_name','Disk Group'),
+                       ('health','Health'),
+                       ('size','Size'),
+                       ('storage_type','Type'),
+                       ('owner','Owner'),
+                       ('preferred_owner','Pref. Owner'),
+                       ('read_ahead_size','Read Ahead'),
+                       ('write_policy','Write Policy'),
+                       ]
+            # Extract titles for table header
+            table_header = [x[1] for x in columns]
+            table_rows = []
+            for volume in volumes:
+                row = []
+                for attribute, title in columns:
+                    try:
+                        row.append(getattr(volume,attribute))
+                    except AttributeError as err:
+                        raise ApiError("No attribute '{}' in volume "
+                                       "definition:\n{}".format(
+                                            attribute,
+                                            pformat(volume),
+                                            ))
+
+                table_rows.append(row)
+
+            # Print table
+            tables.display_table(table_header, table_rows, style='bordered')
+
+            #######################################
+            # PRINT Table of DISKs
             print(f"\n{Fore.WHITE}{Style.BRIGHT}Disks:{Style.RESET_ALL}")
             disks = show.disks(session, disk_groups=[dg.name])
 
@@ -186,5 +224,6 @@ def storage(args, session):
         # Print table
         tables.display_table(table_header, table_rows, style='bordered')
 
+    rc = CheckResult.OK
     return rc.value
 

@@ -4,6 +4,7 @@ from colorama import Fore, Style
 from terminaltables import SingleTable
 from pprint import pformat
 import datetime
+import re
 
 from me4storage.api.session import Session
 from me4storage.common.exceptions import ApiError
@@ -48,61 +49,48 @@ def disk_layout_me4084_linear_raid6(args, session):
     # There is no way to make these raid-groups tolerate a draw failure,
     # like with the MD platform, thus we worry less about the exact layout
     # of the disks within the drawers
-    logger.info(f"Creating disk group: dg1-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg1-{system_name}",
-                             disks="0.2-11",
-                             chunk_size="128",
-                             raid_level="raid6")
+    #
+    # We use a simple layout where we simply select disks in steps of '8'
 
-    logger.info(f"Creating disk group: dg2-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg2-{system_name}",
-                             disks="0.12-21",
-                             chunk_size="128",
-                             raid_level="raid6")
+    drawer_0_start_id = 2
+    drawer_0_end_id = 42
+    drawer_1_start_id = 44
+    drawer_1_end_id = 84
 
-    logger.info(f"Creating disk group: dg3-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg3-{system_name}",
-                             disks="0.22-31",
-                             chunk_size="128",
-                             raid_level="raid6")
+    for i in range(0,8):
+        start_id = drawer_0_start_id + i
+        drawer_0_disks=list(range(start_id, drawer_0_end_id, 8))
 
-    logger.info(f"Creating disk group: dg4-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg4-{system_name}",
-                             disks="0.32-41",
-                             chunk_size="128",
-                             raid_level="raid6")
+        start_id = drawer_1_start_id + i
+        drawer_1_disks=list(range(start_id, drawer_1_end_id, 8))
 
-    logger.info(f"Creating disk group: dg5-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg5-{system_name}",
-                             disks="0.44-53",
-                             chunk_size="128",
-                             raid_level="raid6")
+        disks = drawer_0_disks + drawer_1_disks
 
-    logger.info(f"Creating disk group: dg6-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg6-{system_name}",
-                             disks="0.54-63",
-                             chunk_size="128",
-                             raid_level="raid6")
+        enclosure_id = 0
+        disk_ids = [ f"{enclosure_id}.{disk}" for disk in disks ]
 
-    logger.info(f"Creating disk group: dg7-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg7-{system_name}",
-                             disks="0.64-73",
-                             chunk_size="128",
-                             raid_level="raid6")
+        dg_index = i + 1
+        dg_name = f"dg{dg_index}-{system_name}"
 
-    logger.info(f"Creating disk group: dg8-{system_name}")
-    create.linear_disk_group(session,
-                             name=f"dg8-{system_name}",
-                             disks="0.74-83",
-                             chunk_size="128",
-                             raid_level="raid6")
+
+        logger.info(f"""Creating disk group: {dg_name}, """
+                    f"""Disks: {",".join(disk_ids)}""")
+        create.linear_disk_group(session,
+                                 name=dg_name,
+                                 disks=",".join(disk_ids),
+                                 chunk_size="128",
+                                 raid_level="raid6")
+
+    disk_groups = show.disk_groups(session)
+    for dg in disk_groups:
+        volume_name = re.sub(r'^dg([0-9]+\-.*)',r'v\1',dg.name)
+        volume_size = dg.size
+        logger.info(f"""Creating volume: {volume_name}, of size """
+                    f"""{volume_size} on disk group: {dg.name}""")
+        create.linear_volume(session,
+                             name=volume_name,
+                             disk_group=dg.name,
+                             size=volume_size)
 
     rc = CheckResult.OK
     return rc.value

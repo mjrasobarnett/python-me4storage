@@ -32,3 +32,18 @@ def linear_disk_group(session,
     response = session.put('add/disk-group',data)
     return response
 
+def linear_volume(session,
+                  name,
+                  disk_group,
+                  size,
+                  ):
+
+    data = {}
+
+    data[name] = None
+    data['vdisk'] = disk_group
+    data['size'] = size
+
+    response = session.put('create/volume',data)
+    return response
+

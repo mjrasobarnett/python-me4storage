@@ -15,6 +15,7 @@ from me4storage.models.email_parameters import EmailParameters
 from me4storage.models.disk_group import DiskGroup
 from me4storage.models.pool import Pool
 from me4storage.models.disk import Disk
+from me4storage.models.volume import Volume
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +120,27 @@ def disk_groups(session, detail=None, pool_name=None, disk_groups=None):
     results = []
     for _dict in response_body.get('disk-groups',[]):
         results.append(DiskGroup(_dict))
+
+    return results
+
+def volumes(session, detail=None, pool=None, disk_groups=None, volume_type=None, volumes=None):
+    params = {}
+    if detail is not None:
+        params['detail'] = None
+    if pool is not None:
+        params['pool'] = None
+    if (disk_groups is not None) and isinstance(disk_groups, list):
+        params['vdisk'] = ",".join(disk_groups)
+    if volume_type is not None:
+        params['type'] = volume_type
+    if (volumes is not None) and isinstance(volumes, list):
+        params[",".join(volumes)] = None
+
+    response_body = session.get_object('show/volumes',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('volumes',[]):
+        results.append(Volume(_dict))
 
     return results
 
