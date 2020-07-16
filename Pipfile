@@ -12,6 +12,7 @@ colorama = "*"
 request = "*"
 packaging = "*"
 terminaltables = "*"
+rich = "*"
 
 [requires]
 python_version = "3.6"
