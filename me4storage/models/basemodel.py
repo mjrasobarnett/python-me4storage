@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from pprint import pformat
 
 import me4storage.common.formatters as formatters
 import me4storage.common.exceptions as exceptions
@@ -86,7 +87,7 @@ class Model:
             try:
                 setattr(self, key.replace('-','_').lower(), json_dict[key])
             except KeyError as e:
-                logger.debug(f"Failed to find key: {key} in dict:\n{json_dict}")
+                logger.debug(f"Failed to find key: {key} in dict:\n{pformat(json_dict)}")
                 raise e
 
     def format_attribute(self, attr_name):
