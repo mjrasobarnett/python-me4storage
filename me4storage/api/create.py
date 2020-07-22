@@ -77,3 +77,24 @@ def host_group(session,
 
     response = session.put('create/host-group',data)
     return response
+
+def mapping(session,
+         volumes,
+         initiators,
+         lun=None,
+         access=None,
+         ):
+
+    data = {}
+
+    if isinstance(volumes, list):
+        data[",".join(volumes)] = None
+    if isinstance(initiators, list):
+        data['initiator'] = ",".join(initiators)
+    if lun is not None:
+        data['lun'] = lun
+    if access is not None:
+        data['access'] = access
+
+    response = session.put('map/volume',data)
+    return response

@@ -18,6 +18,8 @@ from me4storage.models.disk import Disk
 from me4storage.models.volume import Volume
 from me4storage.models.initiator import Initiator
 from me4storage.models.host_group import HostGroup
+from me4storage.models.volume_view import VolumeView, VolumeViewMapping
+from me4storage.models.host_group_view import HostGroupView, HostViewMapping
 
 logger = logging.getLogger(__name__)
 
@@ -190,3 +192,32 @@ def host_groups(session, hosts=None, initiators=None):
         results.append(HostGroup(_dict))
 
     return results
+
+def mappings(session, show_all=None, show_initiator_mappings=None, initiators=None):
+    params = {}
+    if show_all is not None:
+        params['all'] = None
+    if show_initiator_mappings is not None:
+        params['initiator'] = None
+    if (initiators is not None) and isinstance(initiators, list):
+        params['initiators'] = ",".join(initiators)
+
+    response_body = session.get_object('show/maps',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+
+    # model type depends on whether option to show initiator mappings was chosen
+    if show_initiator_mappings is not None:
+        for _dict in response_body.get('host-group-view',[]):
+            results.append(HostGroupView(_dict))
+    else:
+        for _dict in response_body.get('volume-view',[]):
+            results.append(VolumeView(_dict))
+
+    return results
+
+def volume_mappings(session, show_all=None, initiators=None):
+    return mappings(session, show_all=show_all, initiators=initiators)
+
+def host_group_mappings(session, show_all=None, initiators=None):
+    return mappings(session, show_all=show_all, show_initiator_mappings=True, initiators=initiators)

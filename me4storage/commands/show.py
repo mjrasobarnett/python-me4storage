@@ -308,3 +308,52 @@ def hosts(args, session):
 
     rc = CheckResult.OK
     return rc.value
+
+def mappings(args, session):
+
+    systems = show.system(session)
+
+    host_group_views = show.host_group_mappings(session)
+
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+    for host_group_view in host_group_views:
+        print(f"\n{Fore.WHITE}{Style.BRIGHT}Host Group: {host_group_view.group_name}{Style.RESET_ALL}")
+        mappings = host_group_view.host_view_mappings
+
+        # List of columns to print, as a tuple of attribute name,
+        # and column title
+        columns = [('volume','Volume'),
+                   ('volume_serial','Volume Serial'),
+                   ('access','Access'),
+                   ('lun','LUN'),
+                   ('ports','Ports'),
+                   ]
+
+        # Extract titles for table header
+        table_header = ['Host Group'] + [x[1] for x in columns]
+        table_rows = []
+
+        for mapping in mappings:
+
+            row = []
+            row.append(host_group_view.group_name)
+
+            for attribute, title in columns:
+                try:
+                    row.append(getattr(mapping,attribute))
+                except AttributeError as err:
+                    raise ApiError("No attribute '{}' in mapping "
+                                   "definition:\n{}".format(
+                                        attribute,
+                                        pformat(mapping),
+                                        ))
+
+            table_rows.append(row)
+
+        # Print table
+        tables.display_table(table_header, table_rows, style='bordered')
+
+    rc = CheckResult.OK
+    return rc.value

@@ -120,7 +120,7 @@ class Session:
                 url = url + '/' + key
 
         # Use urllib.parse.quote to sanitise URL
-        sanitised_url = urllib.parse.quote(url, safe='/@_.,-~:"')
+        sanitised_url = urllib.parse.quote(url, safe='/@_.,-~:"*')
         logger.debug(f"url: {sanitised_url}")
         return sanitised_url
 

@@ -376,6 +376,12 @@ def cli():
     subparsers.append(show_hosts_p)
     show_hosts_p.set_defaults(func=commands.show.hosts)
 
+    show_mappings_p = show_subcommands.add_parser(name='mappings',
+                    parents=[auth_p],
+                    help='''show mappings information ''')
+    subparsers.append(show_mappings_p)
+    show_mappings_p.set_defaults(func=commands.show.mappings)
+
     ####################################################################
     # CONFIGURE subcommands
     ####################################################################
@@ -423,6 +429,17 @@ def cli():
                 required=True,
                 nargs='+',
                 help="List of initiator ports to attach to host"
+                )
+
+    configure_mapping_p = configure_subcommands.add_parser(name='mapping',
+                    parents=[auth_p],
+                    help='''configure volume mappings''')
+    subparsers.append(configure_mapping_p)
+    configure_mapping_p.set_defaults(func=commands.configure.mapping)
+    configure_mapping_p.add_argument(
+                '--host-group',
+                required=True,
+                help="Name of host-group to map volumes to."
                 )
 
     ####################################################################
@@ -498,6 +515,35 @@ def cli():
                 action='store_true',
                 dest='delete_host_group_all',
                 help="Delete all host groups present"
+                )
+
+    delete_mapping_p = delete_subcommands.add_parser(name='mapping',
+                    parents=[auth_p],
+                    help='''Delete volume mapping''')
+    subparsers.append(delete_mapping_p)
+    delete_mapping_p.set_defaults(func=commands.delete.mapping)
+    delete_mapping_volumes_g = delete_mapping_p.add_mutually_exclusive_group(required=True)
+    delete_mapping_volumes_g.add_argument(
+                '--volume',
+                dest='delete_mapping_volume',
+                help="Name of volume to un-map"
+                )
+    delete_mapping_volumes_g.add_argument(
+                '--all',
+                action='store_true',
+                dest='delete_mapping_all_volumes',
+                help="Delete mapping for all volumes"
+                )
+    delete_mapping_hosts_g = delete_mapping_p.add_mutually_exclusive_group(required=True)
+    delete_mapping_hosts_g.add_argument(
+                '--host',
+                dest='delete_mapping_host',
+                help="Name of host to un-map volumes from"
+                )
+    delete_mapping_hosts_g.add_argument(
+                '--host-group',
+                dest='delete_mapping_host_group',
+                help="Name of host-group to un-map volumes from"
                 )
 
     #########

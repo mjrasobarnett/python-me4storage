@@ -45,4 +45,17 @@ def initiator_nickname(session,
     response = session.put('delete/initiator-nickname',data)
     return response
 
+def mapping(session,
+         volumes,
+         initiators,
+         ):
 
+    data = {}
+
+    if isinstance(volumes, list):
+        data[",".join(volumes)] = None
+    if isinstance(initiators, list):
+        data['initiator'] = ",".join(initiators)
+
+    response = session.put('unmap/volume',data)
+    return response

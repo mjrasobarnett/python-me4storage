@@ -104,3 +104,51 @@ def configuration(args, session):
 
     rc = CheckResult.OK
     return rc.value
+
+def mapping(args, session):
+    # Check if host or host_group was requested to unmap from
+    if args.delete_mapping_host_group:
+        host_group = args.delete_mapping_host_group
+        # Check if requested host group is configured
+        host_groups = show.host_groups(session)
+        if host_group not in [hg.name for hg in host_groups]:
+            logger.error("Host group {host_group} not configured...")
+            rc = CheckResult.CRITICAL
+            return rc.value
+
+        # Define initiators string, according to required syntax for mapping
+        # See: https://www.dell.com/support/manuals/uk/en/ukbsdt1/powervault-me4012/me4_series_cli_pub/command-syntax?guid=guid-08ed6612-4713-4221-bc66-e3a6808b422a&lang=en-us
+        initiators=f"{host_group}.*.*"
+    else:
+        host = args.delete_mapping_host
+        # Define initiators string, according to required syntax for mapping
+        # See: https://www.dell.com/support/manuals/uk/en/ukbsdt1/powervault-me4012/me4_series_cli_pub/command-syntax?guid=guid-08ed6612-4713-4221-bc66-e3a6808b422a&lang=en-us
+        initiators=f"{host_group}.*"
+
+    # Check if specific volume requested to unmap
+    if args.delete_mapping_volume:
+        volume_name = args.delete_mapping_volume.strip()
+        volumes = show.volumes(session)
+        if volume_name not in [vol.name for vol in volumes]:
+            logger.error("Volume {volume_name} not present...")
+            rc = CheckResult.CRITICAL
+            return rc.value
+
+        logger.info(f"Unmapping volume: {volume.volume_name} "
+                    f"from initiators: {initiators}")
+        delete.mapping(session,
+                       initiators=[initiators],
+                       volumes=[volume.volume_name])
+
+    else:
+        # Unmap all volumes from initiators
+        volumes = show.volumes(session)
+        for volume in volumes:
+            logger.info(f"Unmapping volume: {volume.volume_name} "
+                        f"from initiators: {initiators}")
+            delete.mapping(session,
+                           initiators=[initiators],
+                           volumes=[volume.volume_name])
+
+    rc = CheckResult.OK
+    return rc.value
