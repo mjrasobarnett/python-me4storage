@@ -7,6 +7,8 @@ import json
 
 from pprint import pformat
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 from me4storage.common.exceptions import LoginError, ApiStatusError
 from me4storage.models.status import Status
@@ -22,6 +24,7 @@ class Session:
                  password,
                  verify,
                  timeout = 120,
+                 retries = 5,
                  ):
 
         logger.debug("Init class Session")
@@ -49,6 +52,20 @@ class Session:
         if self.verify == False:
             requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+        # Add a requests transport adapter: https://requests.readthedocs.io/en/master/user/advanced/#transport-adapters
+        # to implement retries for certain failed requests
+        retry_strategy = Retry(
+            total=retries,
+            connect=retries,
+            read=retries,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "OPTIONS"]
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session = requests.Session()
+        self.session.mount("https://", adapter)
+
         # Login to the api and get session token
         self.session_token = None
         self._login()
@@ -58,8 +75,6 @@ class Session:
                 "datatype": "json",
                 "sessionKey": self.session_token,
                 }
-
-        self.session = requests.Session()
 
     def _login(self):
         """
@@ -74,7 +89,7 @@ class Session:
         endpoint_path = f'login/{auth_string}'
         url = self._build_url(endpoint_path)
 
-        response = requests.get(
+        response = self.session.get(
                 url,
                 verify = self.verify,
                 headers = { "datatype": "json",},
