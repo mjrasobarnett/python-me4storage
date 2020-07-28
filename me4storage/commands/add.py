@@ -32,6 +32,7 @@ def user(args, session):
              timeout,
              )
 
+    logger.info("Successfully added user: {name}")
 
     rc = CheckResult.OK
     return rc.value

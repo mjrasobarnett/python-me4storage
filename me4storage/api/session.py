@@ -3,11 +3,14 @@ import requests
 import distutils
 import hashlib
 import urllib
+import json
 
 from pprint import pformat
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
-from me4storage.common.exceptions import LoginError, ApiError, ApiStatusError
+from me4storage.common.exceptions import LoginError, ApiStatusError
 from me4storage.models.status import Status
 
 logger = logging.getLogger(__name__)
@@ -21,6 +24,7 @@ class Session:
                  password,
                  verify,
                  timeout = 120,
+                 retries = 5,
                  ):
 
         logger.debug("Init class Session")
@@ -48,6 +52,20 @@ class Session:
         if self.verify == False:
             requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+        # Add a requests transport adapter: https://requests.readthedocs.io/en/master/user/advanced/#transport-adapters
+        # to implement retries for certain failed requests
+        retry_strategy = Retry(
+            total=retries,
+            connect=retries,
+            read=retries,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "OPTIONS"]
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session = requests.Session()
+        self.session.mount("https://", adapter)
+
         # Login to the api and get session token
         self.session_token = None
         self._login()
@@ -57,8 +75,6 @@ class Session:
                 "datatype": "json",
                 "sessionKey": self.session_token,
                 }
-
-        self.session = requests.Session()
 
     def _login(self):
         """
@@ -73,7 +89,7 @@ class Session:
         endpoint_path = f'login/{auth_string}'
         url = self._build_url(endpoint_path)
 
-        response = requests.get(
+        response = self.session.get(
                 url,
                 verify = self.verify,
                 headers = { "datatype": "json",},
@@ -82,7 +98,8 @@ class Session:
         logger.debug("Response:\n{}".format(response.text))
         response.raise_for_status()
 
-        response_body = response.json()
+        response_body = self._decode_response(response)
+        logger.debug("Response:\n{}".format(pformat(response_body)))
 
         try:
             self.session_token = response_body['status'][0]['response']
@@ -90,6 +107,40 @@ class Session:
             logger.error("Unable to login, unexpected output in "
                          f"response: \n{response.text}")
             raise LoginError("No session token received")
+
+    def _decode_response(self, response):
+        try:
+            response_body = response.json()
+        except json.decoder.JSONDecodeError as e:
+            # Handle edge-case for certain operations, such as creating
+            # the very first user in the array after factory reset.
+            # In this case the API response does *NOT* contain a status object
+            # as expected (neither is it valid json).
+            #
+            # If this text output starts with the work 'Success' we squash
+            # the error and instead return a dummy 'status' response
+            if response.text.startswith('Success:'):
+                response_body = {
+                        "status": [
+                            {
+                                    "object-name":"status",
+                                    "meta":"/meta/status",
+                                    "response-type":"Success",
+                                    "response-type-numeric":0,
+                                    "response":"",
+                                    "return-code":0,
+                                    "component-id":"",
+                                    "time-stamp":"",
+                                    "time-stamp-numeric":0,
+                            },
+                        ],
+                    }
+            else:
+                logger.error(f"Failed to decode response into json:\n{response.text}")
+                raise e
+
+        return response_body
+
 
     def _build_url(self, endpoint, data={}):
         """ Format endpoint string and optional data parameters into compatible
@@ -132,12 +183,14 @@ class Session:
 
         If not raise ApiStatusError exception
         """
+
+
         try:
             status_responses = response['status']
         except Exception as e:
             logger.error("Unable to parse API response status object. "
-                         f"Response: \n{response.text}")
-            raise ApiError("Unexpected status in response")
+                         f"Response: \n{response}")
+            raise ApiStatusError("Unexpected status in response", response)
 
         for status_response in status_responses:
             status = Status(status_response)
@@ -157,7 +210,7 @@ class Session:
         response.raise_for_status()
 
         # Decode response from json
-        response_body = response.json()
+        response_body = self._decode_response(response)
         logger.debug("Response:\n{}".format(pformat(response_body)))
 
         # Accorindg to Dell API guidelines all API responses
@@ -191,7 +244,7 @@ class Session:
         response.raise_for_status()
 
         # Decode response from json
-        response_body = response.json()
+        response_body = self._decode_response(response)
         logger.debug("Response:\n{}".format(pformat(response_body)))
 
         # Accorindg to Dell API guidelines all API responses

@@ -74,12 +74,23 @@ def network(args, session):
                    netmask=args.netmask,
                    )
 
+    logger.info(f"Updated controller a ip: {args.controller_a_ip}")
+    logger.warning("May take up to 2 minutes for updated network settings to dislay...")
+    # Establish a new session here, since by changing the controller IP,
+    # we may have just broken our previous connection to the array
+    session = Session(baseurl = 'https://' + 'localhost',
+                      port = '9449',
+                      username = args.api_username,
+                      password = args.api_password,
+                      verify = False if args.api_disable_tls_verification else True)
+
     modify.network(session,
                    controller='b',
                    ip=args.controller_b_ip,
                    gateway=args.gateway,
                    netmask=args.netmask,
                    )
+    logger.info(f"Updated controller b ip: {args.controller_b_ip}")
 
     logger.warning("May take up to 2 minutes for updated network settings to dislay...")
     commands.show.network(args, session)
