@@ -20,8 +20,22 @@ from me4storage.models.initiator import Initiator
 from me4storage.models.host_group import HostGroup
 from me4storage.models.volume_view import VolumeView, VolumeViewMapping
 from me4storage.models.host_group_view import HostGroupView, HostViewMapping
+from me4storage.models.user import User
 
 logger = logging.getLogger(__name__)
+
+def users(session, user=None):
+    params = {}
+    if user is not None:
+        params[user] = None
+
+    response_body = session.get_object('show/users',params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('users',[]):
+        results.append(User(_dict))
+
+    return results
 
 def system(session):
     response_body = session.get_object('show/system')

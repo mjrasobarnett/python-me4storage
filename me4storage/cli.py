@@ -15,7 +15,7 @@ from me4storage.common.nsca import CheckResult
 
 from me4storage.api.session import Session
 from me4storage import commands
-from me4storage.commands import check, modify, show, configure, delete
+from me4storage.commands import add, check, modify, show, configure, delete
 
 def cli():
 
@@ -73,7 +73,7 @@ def cli():
     config_files = file_parser.read(args.config_files)
     conf_file_defaults = {}
     if config_files:
-        logger.info('Found configuration files: {}'.format(config_files))
+        logger.debug('Found configuration files: {}'.format(config_files))
         for section_name in file_parser.sections():
             logger.debug('Section: {}'.format(section_name))
             logger.debug('  Options: {}'.format(file_parser.options(section_name)))
@@ -148,6 +148,57 @@ def cli():
                     help='''check health status''')
     subparsers.append(check_health_p)
     check_health_p.set_defaults(func=commands.check.health_status)
+
+    ####################################################################
+    # ADD subcommands
+    ####################################################################
+
+    # Top level subcommand
+    add_p = subcommands.add_parser(name='add',
+        help='''add commands''')
+    add_subcommands = add_p.add_subparsers(dest='add_subcommands',
+        title='subcommands of add',description='''
+        Below are the core subcommands of program:''')
+    add_subcommands.required = True
+
+    add_user_p = add_subcommands.add_parser(name='user',
+                    parents=[auth_p],
+                    help='''add user''')
+    subparsers.append(add_user_p)
+    add_user_p.set_defaults(func=commands.add.user)
+    add_user_p.add_argument(
+                '--username',
+                required=True,
+                help="User name"
+                )
+    add_user_p.add_argument(
+                '--password',
+                required=True,
+                help="User password"
+                )
+    add_user_p.add_argument(
+                '--interfaces',
+                choices=['cli','wbi','ftp','smis','snmpuser','snmptarget','none'],
+                nargs='+',
+                help="Connection interfaces this user can access the area over"
+                )
+    add_user_p.add_argument(
+                '--roles',
+                choices=['monitor','manage','diagnostic'],
+                nargs='+',
+                help="User roles"
+                )
+    add_user_p.add_argument(
+                '--timeout',
+                default='1800',
+                help="Timeout value in seconds"
+                )
+    add_user_p.add_argument(
+                '--base',
+                choices=['2','10'],
+                default='2',
+                help="Sets the display of storage size to be either base2 or base10"
+                )
 
     ####################################################################
     # SET subcommands
@@ -340,6 +391,12 @@ def cli():
         title='subcommands of show',description='''
         Below are the core subcommands of program:''')
     show_subcommands.required = True
+
+    show_users_p = show_subcommands.add_parser(name='users',
+                    parents=[auth_p],
+                    help='''show users''')
+    subparsers.append(show_users_p)
+    show_users_p.set_defaults(func=commands.show.users)
 
     show_system_info_p = show_subcommands.add_parser(name='system-info',
                     parents=[auth_p],

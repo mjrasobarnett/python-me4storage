@@ -21,4 +21,3 @@ def host_group_members(session,
     response = session.put('add/host-group-members',data)
     return response
 
-

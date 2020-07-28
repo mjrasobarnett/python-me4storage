@@ -17,6 +17,51 @@ import me4storage.common.tables as tables
 
 logger = logging.getLogger(__name__)
 
+def users(args, session):
+
+    systems = show.system(session)
+    users = show.users(session)
+
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+    print(f"\n{Fore.WHITE}{Style.BRIGHT}Users:{Style.RESET_ALL}")
+    # List of columns to print, as a tuple of attribute name,
+    # and column title
+    columns = [('username','Name'),
+               ('roles','Roles'),
+               ('interface_access_wbi','Web Access'),
+               ('interface_access_cli','CLI Access'),
+               ('interface_access_ftp','FTP Access'),
+               ('interface_access_snmp','SNMP Access'),
+               ('storage_size_base','Display Units Base'),
+               ]
+
+    # Extract titles for table header
+    table_header = [x[1] for x in columns]
+    table_rows = []
+
+    for user in users:
+        row = []
+        for attribute, title in columns:
+            try:
+                row.append(getattr(user,attribute))
+            except AttributeError as err:
+                raise ApiError("No attribute '{}' in user "
+                               "definition:\n{}".format(
+                                    attribute,
+                                    pformat(user),
+                                    ))
+
+        table_rows.append(row)
+
+    # Print table
+    tables.display_table(table_header, table_rows, style='bordered')
+
+
+    rc = CheckResult.OK
+    return rc.value
+
 def system_info(args, session):
 
     systems = show.system(session)
