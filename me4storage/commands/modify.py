@@ -78,8 +78,8 @@ def network(args, session):
     logger.warning("May take up to 2 minutes for updated network settings to dislay...")
     # Establish a new session here, since by changing the controller IP,
     # we may have just broken our previous connection to the array
-    session = Session(baseurl = 'https://' + 'localhost',
-                      port = '9449',
+    session = Session(baseurl = args.controller_a_ip,
+                      port = args.api_port,
                       username = args.api_username,
                       password = args.api_password,
                       verify = False if args.api_disable_tls_verification else True)
