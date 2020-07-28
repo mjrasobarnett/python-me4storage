@@ -1,0 +1,42 @@
+---
+image: python:3.6
+
+variables:
+  DEPLOY_URL: "deploy@pip.hpc.private.cam.ac.uk:pip/me4storage/"
+
+stages:
+  - build
+  - deploy
+
+build_and_test:
+  stage: build
+  script:
+    - pip install -r requirements.txt
+    - python setup.py develop
+    - python -m pytest -v
+    - python setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist
+    expire_in: 48 hour
+  tags:
+    - docker
+
+deploy:
+  stage: deploy
+  before_script: &ssh_setup
+    - eval $(ssh-agent -s)
+    - echo "$DEPLOY_SSH_KEY" | base64 -d | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - echo "Copying packages to webserver ..."
+    - apt-get update
+    - apt-get install -y rsync
+    - rsync -rv --chmod=D2775,F664 dist/ $DEPLOY_URL
+  only:
+    - master
+    - tags
+  tags:
+    - docker

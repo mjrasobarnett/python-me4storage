@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from pprint import pformat
 
 import me4storage.common.formatters as formatters
 import me4storage.common.exceptions as exceptions
@@ -75,8 +76,6 @@ class Model:
         Args:
             json_dict (dict): the decoded JSON dictionary returned by the API
         """
-        logger.debug(f'Updating model attributes from json dict:')
-        logger.debug(f'{json_dict}')
 
         # All other attrs we gather from this model's _attrs definition
         for key, _ in self._attrs.items():
@@ -85,10 +84,11 @@ class Model:
             # is not present, which will indicate to us that the
             # the api response has changed, or we've made an error in
             # our model
-            setattr(self, key.replace('-','_').lower(), json_dict[key])
-
-        logger.debug(f'Model attributes:')
-        logger.debug(self.__dict__)
+            try:
+                setattr(self, key.replace('-','_').lower(), json_dict[key])
+            except KeyError as e:
+                logger.debug(f"Failed to find key: {key} in dict:\n{pformat(json_dict)}")
+                raise e
 
     def format_attribute(self, attr_name):
         """ For a given attribute, return a human-friendly representation

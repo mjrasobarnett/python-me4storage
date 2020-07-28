@@ -15,7 +15,7 @@ from me4storage.common.nsca import CheckResult
 
 from me4storage.api.session import Session
 from me4storage import commands
-from me4storage.commands import check, modify, show
+from me4storage.commands import add, check, modify, show, configure, delete
 
 def cli():
 
@@ -54,6 +54,7 @@ def cli():
 
     # Set log level
     logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
     if args.quiet:
         logger.setLevel(logging.WARN)
     if args.debug:
@@ -72,7 +73,7 @@ def cli():
     config_files = file_parser.read(args.config_files)
     conf_file_defaults = {}
     if config_files:
-        logger.info('Found configuration files: {}'.format(config_files))
+        logger.debug('Found configuration files: {}'.format(config_files))
         for section_name in file_parser.sections():
             logger.debug('Section: {}'.format(section_name))
             logger.debug('  Options: {}'.format(file_parser.options(section_name)))
@@ -149,6 +150,57 @@ def cli():
     check_health_p.set_defaults(func=commands.check.health_status)
 
     ####################################################################
+    # ADD subcommands
+    ####################################################################
+
+    # Top level subcommand
+    add_p = subcommands.add_parser(name='add',
+        help='''add commands''')
+    add_subcommands = add_p.add_subparsers(dest='add_subcommands',
+        title='subcommands of add',description='''
+        Below are the core subcommands of program:''')
+    add_subcommands.required = True
+
+    add_user_p = add_subcommands.add_parser(name='user',
+                    parents=[auth_p],
+                    help='''add user''')
+    subparsers.append(add_user_p)
+    add_user_p.set_defaults(func=commands.add.user)
+    add_user_p.add_argument(
+                '--username',
+                required=True,
+                help="User name"
+                )
+    add_user_p.add_argument(
+                '--password',
+                required=True,
+                help="User password"
+                )
+    add_user_p.add_argument(
+                '--interfaces',
+                choices=['cli','wbi','ftp','smis','snmpuser','snmptarget','none'],
+                nargs='+',
+                help="Connection interfaces this user can access the area over"
+                )
+    add_user_p.add_argument(
+                '--roles',
+                choices=['monitor','manage','diagnostic'],
+                nargs='+',
+                help="User roles"
+                )
+    add_user_p.add_argument(
+                '--timeout',
+                default='1800',
+                help="Timeout value in seconds"
+                )
+    add_user_p.add_argument(
+                '--base',
+                choices=['2','10'],
+                default='2',
+                help="Sets the display of storage size to be either base2 or base10"
+                )
+
+    ####################################################################
     # SET subcommands
     ####################################################################
 
@@ -198,6 +250,7 @@ def cli():
     set_ntp_p.add_argument(
                 '--status',
                 dest="status",
+                required=True,
                 choices=['enabled','disabled'],
                 default=None,
                 help="Enable/disable use of NTP"
@@ -205,6 +258,7 @@ def cli():
     set_ntp_p.add_argument(
                 '--ntp-server',
                 dest='ntp_server',
+                required=True,
                 default=None,
                 help="IP/FQDN of NTP server"
                 )
@@ -213,6 +267,117 @@ def cli():
                 dest='timezone',
                 default=None,
                 help="Timezone offset, in hours (-12 to +14), from UTC"
+                )
+
+    set_dns_p = set_subcommands.add_parser(name='dns',
+                    parents=[auth_p],
+                    help='''set dns parameters''')
+    subparsers.append(set_dns_p)
+    set_dns_p.set_defaults(func=commands.modify.dns)
+    set_dns_p.add_argument(
+                '--name-servers',
+                dest='name_servers',
+                required=True,
+                nargs='*',
+                default=None,
+                help="Ordered list of name server addresses"
+                )
+    set_dns_p.add_argument(
+                '--search-domains',
+                dest='search_domains',
+                required=True,
+                nargs='*',
+                default=None,
+                help="Ordered list of search domains"
+                )
+
+    set_network_p = set_subcommands.add_parser(name='network',
+                    parents=[auth_p],
+                    help='''set network parameters''')
+    subparsers.append(set_network_p)
+    set_network_p.set_defaults(func=commands.modify.network)
+    set_network_p.add_argument(
+                '--controller-a-ip',
+                required=True,
+                default=None,
+                help="Controller A management IPv4 address"
+                )
+    set_network_p.add_argument(
+                '--controller-b-ip',
+                required=True,
+                default=None,
+                help="Controller B management IPv4 address"
+                )
+    set_network_p.add_argument(
+                '--gateway',
+                required=True,
+                default=None,
+                help="Default Gateway"
+                )
+    set_network_p.add_argument(
+                '--netmask',
+                required=True,
+                default=None,
+                help="Netmask"
+                )
+
+    set_support_assist_p = set_subcommands.add_parser(name='support-assist',
+                    parents=[auth_p],
+                    help='''set support-assist on/off''')
+    subparsers.append(set_support_assist_p)
+    set_support_assist_p.set_defaults(func=commands.modify.support_assist)
+    set_support_assist_p.add_argument(
+                '--status',
+                required=True,
+                choices=['enabled','disabled'],
+                default='disabled',
+                help="Enable or Disable support-assist functionality (default: %(default)s)"
+                )
+
+    set_email_p = set_subcommands.add_parser(name='email',
+                    parents=[auth_p],
+                    help='''set email notification parameters''')
+    subparsers.append(set_email_p)
+    set_email_p.set_defaults(func=commands.modify.email)
+    set_email_p.add_argument(
+                '--domain',
+                required=True,
+                help="Sender domain"
+                )
+    set_email_p.add_argument(
+                '--recipients',
+                required=True,
+                nargs='+',
+                action=util.required_length(1,4),
+                help="Recipient emails for notifications"
+                )
+    set_email_p.add_argument(
+                '--security-protocol',
+                default='none',
+                choices=['tls','ssl','none'],
+                help="SMTP security protocol"
+                )
+    set_email_p.add_argument(
+                '--notification-level',
+                default='none',
+                choices=['crit','error','warn','resolved','info','none'],
+                help="Email notification level"
+                )
+    set_email_p.add_argument(
+                '--port',
+                default='25',
+                help="SMTP Server port. Default: 25"
+                )
+    set_email_p.add_argument(
+                '--server',
+                required=True,
+                help="SMTP Server"
+                )
+    set_email_p.add_argument(
+                '--sender',
+                required=True,
+                default=None,
+                help="Sender name, joinged with domain to form the 'from' address"
                 )
 
     ####################################################################
@@ -227,11 +392,216 @@ def cli():
         Below are the core subcommands of program:''')
     show_subcommands.required = True
 
+    show_users_p = show_subcommands.add_parser(name='users',
+                    parents=[auth_p],
+                    help='''show users''')
+    subparsers.append(show_users_p)
+    show_users_p.set_defaults(func=commands.show.users)
+
     show_system_info_p = show_subcommands.add_parser(name='system-info',
                     parents=[auth_p],
                     help='''show system information (name, contact, desc)''')
     subparsers.append(show_system_info_p)
     show_system_info_p.set_defaults(func=commands.show.system_info)
+
+    show_network_p = show_subcommands.add_parser(name='network',
+                    parents=[auth_p],
+                    help='''show network information (IP, DNS, NTP)''')
+    subparsers.append(show_network_p)
+    show_network_p.set_defaults(func=commands.show.network)
+
+    show_notifications_p = show_subcommands.add_parser(name='notifications',
+                    parents=[auth_p],
+                    help='''show notifications information (email, SNMP, ...)''')
+    subparsers.append(show_notifications_p)
+    show_notifications_p.set_defaults(func=commands.show.notifications)
+
+    show_storage_p = show_subcommands.add_parser(name='storage',
+                    parents=[auth_p],
+                    help='''show storage information ''')
+    subparsers.append(show_storage_p)
+    show_storage_p.set_defaults(func=commands.show.storage)
+    show_storage_p.add_argument(
+                '--detailed',
+                action='store_true',
+                help="Show more detailed information"
+                )
+
+    show_hosts_p = show_subcommands.add_parser(name='hosts',
+                    parents=[auth_p],
+                    help='''show hosts information ''')
+    subparsers.append(show_hosts_p)
+    show_hosts_p.set_defaults(func=commands.show.hosts)
+
+    show_mappings_p = show_subcommands.add_parser(name='mappings',
+                    parents=[auth_p],
+                    help='''show mappings information ''')
+    subparsers.append(show_mappings_p)
+    show_mappings_p.set_defaults(func=commands.show.mappings)
+
+    ####################################################################
+    # CONFIGURE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    configure_p = subcommands.add_parser(name='configure',
+        help='''configure commands''')
+    configure_subcommands = configure_p.add_subparsers(dest='configure_subcommands',
+        title='subcommands of configure',description='''
+        Below are the core subcommands of program:''')
+    configure_subcommands.required = True
+
+    layout_p = configure_subcommands.add_parser(name='disk-layout',
+        help='''disk-layout commands''')
+    layout_subcommands = layout_p.add_subparsers(dest='disk_subcommands',
+        title='subcommands of disk-layout',description='''
+        Below are subcommands of disk-layout:''')
+    layout_subcommands.required = True
+
+    me4084_linear_layout_p = layout_subcommands.add_parser(name='me4084-linear-raid6',
+                    parents=[auth_p],
+                    help='''Configures ME4084 disk groups using typical '''
+                         '''layout for Lustre OSTs - Provisions 8x 10-disk '''
+                         '''Linear Raid6 volumes with a 1MiB stripe-width.''')
+    subparsers.append(me4084_linear_layout_p)
+    me4084_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4084_linear_raid6)
+
+    configure_host_p = configure_subcommands.add_parser(name='host',
+                    parents=[auth_p],
+                    help='''show hosts information ''')
+    subparsers.append(configure_host_p)
+    configure_host_p.set_defaults(func=commands.configure.host)
+    configure_host_p.add_argument(
+                '--host-group',
+                default=None,
+                help="Name of host-group to attach host to. Will "
+                     "create hostgroup with default name if not defined."
+                )
+    configure_host_p.add_argument(
+                'name',
+                help="Name of host"
+                )
+    configure_host_p.add_argument(
+                '--port-wwpn',
+                required=True,
+                nargs='+',
+                help="List of initiator ports to attach to host"
+                )
+
+    configure_mapping_p = configure_subcommands.add_parser(name='mapping',
+                    parents=[auth_p],
+                    help='''configure volume mappings''')
+    subparsers.append(configure_mapping_p)
+    configure_mapping_p.set_defaults(func=commands.configure.mapping)
+    configure_mapping_p.add_argument(
+                '--host-group',
+                required=True,
+                help="Name of host-group to map volumes to."
+                )
+
+    ####################################################################
+    # DELETE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    delete_p = subcommands.add_parser(name='delete',
+        help='''delete commands''')
+    delete_subcommands = delete_p.add_subparsers(dest='delete_subcommands',
+        title='subcommands of delete',description='''
+        Below are the core subcommands of program:''')
+    delete_subcommands.required = True
+
+    delete_configuration_p = delete_subcommands.add_parser(name='configuration',
+                    parents=[auth_p],
+                    help='''Delete all configuration, including storage''')
+    subparsers.append(delete_configuration_p)
+    delete_configuration_p.set_defaults(func=commands.delete.configuration)
+
+    delete_host_configuration_p = delete_subcommands.add_parser(name='host-configuration',
+                    parents=[auth_p],
+                    help='''Delete all host configuration''')
+    subparsers.append(delete_host_configuration_p)
+    delete_host_configuration_p.set_defaults(func=commands.delete.host_configuration)
+
+    delete_pool_p = delete_subcommands.add_parser(name='pool',
+                    parents=[auth_p],
+                    help='''Delete pool''')
+    subparsers.append(delete_pool_p)
+    delete_pool_p.set_defaults(func=commands.delete.pool)
+
+    delete_pool_g = delete_pool_p.add_mutually_exclusive_group(required=True)
+    delete_pool_g.add_argument(
+                '--name',
+                required=False,
+                nargs='*',
+                default=None,
+                dest='delete_pool_names',
+                help="Pools to delete"
+                )
+    delete_pool_g.add_argument(
+                '--all',
+                action='store_true',
+                dest='delete_pool_all',
+                help="Delete all pools present"
+                )
+
+    delete_host_group_p = delete_subcommands.add_parser(name='host-group',
+                    parents=[auth_p],
+                    help='''Delete host group''')
+    subparsers.append(delete_host_group_p)
+    delete_host_group_p.set_defaults(func=commands.delete.host_group)
+    delete_host_group_p.add_argument(
+                '--delete-hosts',
+                action='store_true',
+                default=None,
+                dest='delete_host_group_hosts',
+                help="Also delete all hosts in the group"
+                )
+
+    delete_host_group_g = delete_host_group_p.add_mutually_exclusive_group(required=True)
+    delete_host_group_g.add_argument(
+                '--name',
+                required=False,
+                nargs='*',
+                default=None,
+                dest='delete_host_group_names',
+                help="hosts to delete"
+                )
+    delete_host_group_g.add_argument(
+                '--all',
+                action='store_true',
+                dest='delete_host_group_all',
+                help="Delete all host groups present"
+                )
+
+    delete_mapping_p = delete_subcommands.add_parser(name='mapping',
+                    parents=[auth_p],
+                    help='''Delete volume mapping''')
+    subparsers.append(delete_mapping_p)
+    delete_mapping_p.set_defaults(func=commands.delete.mapping)
+    delete_mapping_volumes_g = delete_mapping_p.add_mutually_exclusive_group(required=True)
+    delete_mapping_volumes_g.add_argument(
+                '--volume',
+                dest='delete_mapping_volume',
+                help="Name of volume to un-map"
+                )
+    delete_mapping_volumes_g.add_argument(
+                '--all',
+                action='store_true',
+                dest='delete_mapping_all_volumes',
+                help="Delete mapping for all volumes"
+                )
+    delete_mapping_hosts_g = delete_mapping_p.add_mutually_exclusive_group(required=True)
+    delete_mapping_hosts_g.add_argument(
+                '--host',
+                dest='delete_mapping_host',
+                help="Name of host to un-map volumes from"
+                )
+    delete_mapping_hosts_g.add_argument(
+                '--host-group',
+                dest='delete_mapping_host_group',
+                help="Name of host-group to un-map volumes from"
+                )
 
     #########
     # PARSE arguments

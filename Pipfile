@@ -4,12 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
 
 [packages]
 argcomplete = "*"
 colorlog = "*"
 colorama = "*"
-request = "*"
+requests = "*"
 packaging = "*"
 terminaltables = "*"
 

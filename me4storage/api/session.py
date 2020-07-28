@@ -20,7 +20,7 @@ class Session:
                  username,
                  password,
                  verify,
-                 timeout = 30,
+                 timeout = 120,
                  ):
 
         logger.debug("Init class Session")
@@ -80,7 +80,6 @@ class Session:
                 )
 
         logger.debug("Response:\n{}".format(response.text))
-        logger.debug("Headers:\n{}".format(response.headers))
         response.raise_for_status()
 
         response_body = response.json()
@@ -111,20 +110,17 @@ class Session:
 
         url = f"{self.baseurl}:{self.port}/api/{endpoint}"
         for key, value in data.items():
-            url = url + '/' + key + '/' + value
+            if value is not None:
+                # Note we quote the value here as the ME4 API expects this for
+                # any values with spaces in them
+                url = url + '/' + key + '/' + '"' + value + '"'
+            else:
+                # If value is None, it is a parameter without a value
+                # so just insert parameter name into the URL
+                url = url + '/' + key
 
-        # Use urllib.parse.quote_plus to sanitise URL
-        # We use 'plus' encoding here for spaces, however the ME4 server
-        # interprets these literally, and inserts '+' into the value stored.
-        # Trying to use percent-encoding for spaces '%20' gives an error:
-        #
-        # ApiStatusError: Operation failed. rc: -10007. Response: The command had an invalid parameter or unrecognized parameter. - Invalid or ambiguous parameter found:
-        #
-        # Thus, despite the CLI supporting spaces in values, when double-quoted,
-        # I haven't found a way to support these in the HTTP api as yet, thus
-        # it is recommended to avoid the use of them.
-        logger.debug(f"raw url: {url}")
-        sanitised_url = urllib.parse.quote_plus(url, safe='/@_.,-~:"')
+        # Use urllib.parse.quote to sanitise URL
+        sanitised_url = urllib.parse.quote(url, safe='/@_.,-~:"*')
         logger.debug(f"url: {sanitised_url}")
         return sanitised_url
 
@@ -163,7 +159,6 @@ class Session:
         # Decode response from json
         response_body = response.json()
         logger.debug("Response:\n{}".format(pformat(response_body)))
-        logger.debug("Headers:\n{}".format(response.headers))
 
         # Accorindg to Dell API guidelines all API responses
         # contain a 'status' object, that we should check that
@@ -176,7 +171,7 @@ class Session:
     def get_object(self, endpoint, params={}):
         """ Get a single object from API """
 
-        url = self._build_url(endpoint)
+        url = self._build_url(endpoint, params)
         data = self._get(url, params)
         if isinstance(data, list):
             raise RuntimeError(f'Bad object URL \'{url}\': expected an object, '
@@ -198,7 +193,6 @@ class Session:
         # Decode response from json
         response_body = response.json()
         logger.debug("Response:\n{}".format(pformat(response_body)))
-        logger.debug("Headers:\n{}".format(response.headers))
 
         # Accorindg to Dell API guidelines all API responses
         # contain a 'status' object, that we should check that
