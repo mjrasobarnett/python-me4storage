@@ -106,8 +106,8 @@ def cli():
     subparsers.append(auth_p)
     auth_group = auth_p.add_argument_group('Authentication')
     auth_group.add_argument(
-                '-H','--api-baseurl',
-                default='https://localhost',
+                '-H','--api-host',
+                default='localhost',
                 help="API Base URL"
                 )
     auth_group.add_argument(
@@ -621,7 +621,7 @@ def cli():
     # Run subcommand function
     try:
 
-        session = Session(baseurl = args.api_baseurl,
+        session = Session(host = args.api_host,
                           port = args.api_port,
                           username = args.api_username,
                           password = args.api_password,

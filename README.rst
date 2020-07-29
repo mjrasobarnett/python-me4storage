@@ -41,7 +41,7 @@ me4cli - EXAMPLE USAGE
   # Create a config file for the API password (or enter this in the cli)
   $ cat .me4cli.conf
   [API]
-  api_baseurl = https://localhost
+  api_host = localhost
   api_port = 9446
   api_username = manage
   api_password = changeme
@@ -107,7 +107,7 @@ user,
   api_username = setup
   api_disable_tls_verification = True
 
-  $ me4cli -f .me4cli.conf.unconfigured add user --api-baseurl https://10.0.0.2 --username manage --password XXXXXXXXX --roles manage monitor
+  $ me4cli -f .me4cli.conf.unconfigured add user --api-host 10.0.0.2 --username manage --password XXXXXXXXX --roles manage monitor
 
 Next configure the basic network settings,
 
@@ -119,10 +119,10 @@ Next configure the basic network settings,
   api_password = XXXXXXXXX
   api_disable_tls_verification = True
 
-  $ me4cli -f .me4cli.conf.initial_setup set network --api-baseurl https://10.0.0.2 --controller-a-ip 10.45.242.9 --controller-b-ip 10.45.242.10 --gateway 10.45.255.1 --netmask 255.255.0.0
+  $ me4cli -f .me4cli.conf.initial_setup set network --api-host 10.0.0.2 --controller-a-ip 10.45.242.9 --controller-b-ip 10.45.242.10 --gateway 10.45.255.1 --netmask 255.255.0.0
   [ERROR] Exception ConnectionError: HTTPSConnectionPool(host='localhost', port=9000): Read timed out.
 
-  $ me4cli -f .me4cli.conf.initial_setup show system-info --api-baseurl https://rds-ost-jb39.bmc.cluster
+  $ me4cli -f .me4cli.conf.initial_setup show system-info --api-host rds-ost-jb39.bmc.cluster
   System: Uninitialized Name
     Product Type:    ME4084
     Contact:         Uninitialized Contact
