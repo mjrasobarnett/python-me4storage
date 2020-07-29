@@ -445,6 +445,17 @@ def cli():
     subparsers.append(show_svc_tag_p)
     show_svc_tag_p.set_defaults(func=commands.show.svc_tag)
 
+    show_disks_p = show_subcommands.add_parser(name='disks',
+                    parents=[auth_p],
+                    help='''show disks information ''')
+    subparsers.append(show_disks_p)
+    show_disks_p.set_defaults(func=commands.show.disks)
+    show_disks_p.add_argument(
+                '--detailed',
+                action='store_true',
+                help="Show more detailed information"
+                )
+
     ####################################################################
     # CONFIGURE subcommands
     ####################################################################

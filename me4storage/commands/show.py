@@ -279,6 +279,55 @@ def storage(args, session):
     return rc.value
 
 
+def disks(args, session):
+
+    systems = show.system(session)
+    disks = show.disks(session)
+
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+
+    # List of columns to print, as a tuple of attribute name,
+    # and column title
+    columns = [('location','Location'),
+               ('serial_number','Serial'),
+               ('vendor','Vendor'),
+               ('model','Model'),
+               ('revision','Rev'),
+               ('interface','Interface'),
+               ('size','Size'),
+               ('status','Status'),
+               ('extended_status_reason','Full Status'),
+               ('health','Health'),
+               ('architecture','Type'),
+               ('rpm','RPM'),
+               ('ssd_life_left','SSD Life %'),
+               ]
+    # Extract titles for table header
+    table_header = [x[1] for x in columns]
+    table_rows = []
+    for disk in disks:
+        row = []
+        for attribute, title in columns:
+            try:
+                row.append(getattr(disk,attribute))
+            except AttributeError as err:
+                raise ApiError("No attribute '{}' in disk "
+                               "definition:\n{}".format(
+                                    attribute,
+                                    pformat(disk),
+                                    ))
+
+        table_rows.append(row)
+
+    # Print table
+    tables.display_table(table_header, table_rows, style='bordered')
+
+    rc = CheckResult.OK
+    return rc.value
+
+
 def hosts(args, session):
 
     systems = show.system(session)
