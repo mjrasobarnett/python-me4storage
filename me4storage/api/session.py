@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Session:
 
     def __init__(self,
-                 baseurl,
+                 host,
                  port,
                  username,
                  password,
@@ -28,7 +28,7 @@ class Session:
                  ):
 
         logger.debug("Init class Session")
-        self.baseurl = baseurl
+        self.host = host
         self.port = port
         self.username = username
         self.password = password
@@ -36,12 +36,12 @@ class Session:
         self.timeout = timeout
 
         logger.debug("Session params:\n"
-                "\tbaseurl: {}\n"
+                "\thost: {}\n"
                 "\tport: {}\n"
                 "\tusername: {}\n"
                 "\tpassword: {}\n"
                 "\tverify: {}"
-                .format(self.baseurl,
+                .format(self.host,
                         self.port,
                         self.username,
                         self.password,
@@ -159,7 +159,7 @@ class Session:
         Thus, this function iterates over any provided parameters and encodes them into the URL
         """
 
-        url = f"{self.baseurl}:{self.port}/api/{endpoint}"
+        url = f"https://{self.host}:{self.port}/api/{endpoint}"
         for key, value in data.items():
             if value is not None:
                 # Note we quote the value here as the ME4 API expects this for
