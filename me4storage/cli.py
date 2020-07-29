@@ -439,6 +439,12 @@ def cli():
     subparsers.append(show_mappings_p)
     show_mappings_p.set_defaults(func=commands.show.mappings)
 
+    show_svc_tag_p = show_subcommands.add_parser(name='svc-tag',
+                    parents=[auth_p],
+                    help='''show svc tag information ''')
+    subparsers.append(show_svc_tag_p)
+    show_svc_tag_p.set_defaults(func=commands.show.svc_tag)
+
     ####################################################################
     # CONFIGURE subcommands
     ####################################################################

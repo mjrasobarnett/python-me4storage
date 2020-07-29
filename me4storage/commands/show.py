@@ -82,7 +82,14 @@ def system_info(args, session):
 
     return rc.value
 
+def svc_tag(args, session):
 
+    service_tags = show.service_tag_info(session)
+    for service_tag in service_tags:
+        print(f"Enclosure {service_tag.enclosure_id}:     {service_tag.service_tag}")
+
+    rc = CheckResult.OK
+    return rc.value
 
 def network(args, session):
 

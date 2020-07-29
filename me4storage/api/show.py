@@ -235,3 +235,12 @@ def volume_mappings(session, show_all=None, initiators=None):
 
 def host_group_mappings(session, show_all=None, initiators=None):
     return mappings(session, show_all=show_all, show_initiator_mappings=True, initiators=initiators)
+
+def svc_tag(session):
+    response_body = session.get_object('show/system')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('system',[]):
+        results.append(System(_dict))
+
+    return results
