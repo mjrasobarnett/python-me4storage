@@ -66,7 +66,6 @@ def system_info(args, session):
 
     systems = show.system(session)
     service_tags = show.service_tag_info(session)
-    ntp_instances = show.ntp_status(session)
 
     rc = CheckResult.OK
     for system in systems:
