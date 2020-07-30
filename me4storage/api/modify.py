@@ -153,3 +153,31 @@ def initiator(session,
 
     response = session.put('set/initiator',data)
     return response
+
+def user(session,
+         name,
+         password=None,
+         base=None,
+         interfaces=None,
+         roles=None,
+         timeout=None,
+         ):
+
+    data = {}
+
+    data[name] = None
+    if password is not None:
+        data['password'] = password
+    if base is not None:
+        data['base'] = base
+    if isinstance(interfaces, list):
+        data['interfaces'] = ",".join(interfaces)
+    if isinstance(roles, list):
+        data['roles'] = ",".join(roles)
+    if timeout is not None:
+        data['timeout'] = timeout
+
+    response = session.put('set/user',data)
+    return response
+
+

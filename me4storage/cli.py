@@ -242,6 +242,44 @@ def cli():
                 help="Location of the System"
                 )
 
+    set_user_p = set_subcommands.add_parser(name='user',
+                    parents=[auth_p],
+                    help='''set user parameters''')
+    subparsers.append(set_user_p)
+    set_user_p.set_defaults(func=commands.modify.user)
+    set_user_p.add_argument(
+                '--username',
+                required=True,
+                help="User name"
+                )
+    set_user_p.add_argument(
+                '--password',
+                help="User password"
+                )
+    set_user_p.add_argument(
+                '--interfaces',
+                choices=['cli','wbi','ftp','smis','snmpuser','snmptarget','none'],
+                nargs='+',
+                help="Connection interfaces this user can access the area over"
+                )
+    set_user_p.add_argument(
+                '--roles',
+                choices=['monitor','manage','diagnostic'],
+                nargs='+',
+                help="User roles"
+                )
+    set_user_p.add_argument(
+                '--timeout',
+                default='1800',
+                help="Timeout value in seconds"
+                )
+    set_user_p.add_argument(
+                '--base',
+                choices=['2','10'],
+                default='2',
+                help="Sets the display of storage size to be either base2 or base10"
+                )
+
     set_ntp_p = set_subcommands.add_parser(name='ntp',
                     parents=[auth_p],
                     help='''set ntp parameters''')
