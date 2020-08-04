@@ -15,7 +15,7 @@ from me4storage.common.nsca import CheckResult
 
 from me4storage.api.session import Session
 from me4storage import commands
-from me4storage.commands import add, check, modify, show, configure, delete
+from me4storage.commands import add, check, modify, show, configure, delete, save, update
 
 def cli():
 
@@ -113,7 +113,12 @@ def cli():
     auth_group.add_argument(
                 '-P','--api-port',
                 default='443',
-                help="NEF API Port"
+                help="API Port"
+                )
+    auth_group.add_argument(
+                '--sftp-port',
+                default='1022',
+                help="SFTP service port"
                 )
     auth_group.add_argument(
                 '-u','--api-username',
@@ -656,6 +661,34 @@ def cli():
                 '--host-group',
                 dest='delete_mapping_host_group',
                 help="Name of host-group to un-map volumes from"
+                )
+
+    ####################################################################
+    # SAVE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    save_p = subcommands.add_parser(name='save',
+        help='''save commands''')
+    save_subcommands = save_p.add_subparsers(dest='save_subcommands',
+        title='subcommands of save',description='''
+        Below are the core subcommands of program:''')
+    save_subcommands.required = True
+
+    save_logs_p = save_subcommands.add_parser(name='logs',
+                    parents=[auth_p],
+                    help='''save logs''')
+    subparsers.append(save_logs_p)
+    save_logs_p.set_defaults(func=commands.save.logs)
+    save_logs_p.add_argument(
+                '--output-dir',
+                default=None,
+                help="Name of output directory to save logs file to"
+                )
+    save_logs_p.add_argument(
+                '--output-file',
+                default=None,
+                help="Name of output file to save logs to"
                 )
 
     #########
