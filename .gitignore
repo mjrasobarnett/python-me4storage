@@ -9,3 +9,4 @@ __pycache__/
 .portalcli.conf*
 tags
 .me4cli.conf*
+tmp/
