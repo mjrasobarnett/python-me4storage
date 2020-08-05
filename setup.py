@@ -22,6 +22,7 @@ REQUIRED = [
     'requests',
     'packaging',
     'terminaltables',
+    'pysftp',
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
