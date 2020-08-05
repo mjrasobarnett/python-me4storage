@@ -241,7 +241,7 @@ def mapping(args, session):
     host_group = args.host_group
     host_groups = show.host_groups(session)
     if host_group not in [hg.name for hg in host_groups]:
-        logger.error("Host group {host_group} not configured...")
+        logger.error(f"Host group {host_group} not configured...")
         rc = CheckResult.CRITICAL
         return rc.value
 
