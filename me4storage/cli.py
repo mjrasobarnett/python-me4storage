@@ -163,6 +163,17 @@ def cli():
     subparsers.append(check_health_p)
     check_health_p.set_defaults(func=commands.check.health_status)
 
+    check_firmware_p = check_subcommands.add_parser(name='firmware',
+                    parents=[auth_p],
+                    help='''check firmware version''')
+    subparsers.append(check_firmware_p)
+    check_firmware_p.set_defaults(func=commands.check.firmware_version)
+    check_firmware_p.add_argument(
+                '--firmware-version',
+                required=True,
+                help='Expected Firmware bundle version for controllers'
+                )
+
     ####################################################################
     # ADD subcommands
     ####################################################################
