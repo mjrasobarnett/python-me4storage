@@ -55,10 +55,15 @@ def cli():
     # Set log level
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
+    # Set paramiko logger to WARNING level because paramiko logging is quite noisy
+    # for our purposes, with many things (like authentication banner) logged to
+    # level INFO, which I prefer not to see
+    logging.getLogger("paramiko").setLevel(logging.WARNING)
     if args.quiet:
         logger.setLevel(logging.WARN)
     if args.debug:
         logger.setLevel(logging.DEBUG)
+        logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
     # Set up colorama
     if args.nocolour:

@@ -19,10 +19,6 @@ from me4storage.api import show
 import me4storage.common.tables as tables
 
 logger = logging.getLogger(__name__)
-# Set paramiko logger to WARNING level because paramiko logging is quite noisy
-# for our purposes, with many things (like authentication banner) logged to
-# level INFO, which I prefer not to see
-logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 def logs(args, session):
 
