@@ -13,6 +13,8 @@ colorama = "*"
 requests = "*"
 packaging = "*"
 terminaltables = "*"
+paramiko = "*"
+pysftp = "*"
 
 [requires]
 python_version = "3.6"

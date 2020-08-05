@@ -34,6 +34,7 @@ class Session:
         self.password = password
         self.verify = verify
         self.timeout = timeout
+        self.retries = retries
 
         logger.debug("Session params:\n"
                 "\thost: {}\n"

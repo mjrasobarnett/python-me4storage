@@ -41,6 +41,7 @@ class Disk(Model):
         'type-numeric': '',
         'usage': '',
         'usage-numeric': '',
+        'smart': '',
         'smart-numeric': '',
         'dual-port': '',
         'error': '',
@@ -94,4 +95,61 @@ class Disk(Model):
         'health-numeric': '',
         'health-reason': '',
         'health-recommendation': '',
+        # Parameters not documented but present in response
+        'job-running': '',
+        'job-running-numeric': '',
+        'led-status': '',
+        'led-status-numeric': '',
+        'locator-led-numeric': '',
+        'locator-led': '',
+        'locator-led-numeric': '',
+        'speed': '',
+        'ssd-life-left': '',
+        'ssd-life-left-numeric': '',
+        'state': '',
         }
+
+    @property
+    def extended_status_reason(self):
+        # Reason descriptions from:
+        # https://www.dell.com/support/manuals/uk/en/ukbsdt1/powervault-me4012/me4_series_cli_pub/drives?guid=guid-7edb7fca-44ce-410d-a670-948e18619a68&lang=en-us
+        reason_mapping = {
+            "0x00000000": "OK",
+            "0x00000001": "Single-pathed, A down",
+            "0x00000002": "SSD exhausted",
+            "0x00000004": "Degraded warning",
+            "0x00000008": "Spun down",
+            "0x00000010": "Downed by user",
+            "0x00000020": "Reconstruction failed",
+            "0x00000040": "Leftover, no reason",
+            "0x00000080": "Previously missing",
+            "0x00000100": "Medium error",
+            "0x00000200": "SMART event",
+            "0x00000400": "Hardware failure",
+            "0x00000800": "Foreign disk unlocked",
+            "0x00001000": "Non-FDE disk",
+            "0x00002000": "FDE protocol failure",
+            "0x00004000": "Using alternate path",
+            "0x00008000": "Initialization failed",
+            "0x00010000": "Unsupported type",
+            "0x00040000": "Recovered errors",
+            "0x00080000": "Unexpected leftover",
+            "0x00100000": "Not auto-secured",
+            "0x00200000": "SSD nearly exhausted",
+            "0x00400000": "Degraded critical",
+            "0x00800000": "Single-pathed, B down",
+            "0x01000000": "Foreign disk secured",
+            "0x02000000": "Foreign disk secured and locked",
+            "0x04000000": "Unexpected usage",
+            "0x08000000": "Enclosure fault sensed",
+            "0x10000000": "Unsupported block size",
+            "0x20000000": "Unsupported vendor",
+            "0x40000000": "Timed-out",
+            "0x200000000": "Preemptive pending degraded",
+            }
+
+        value_numeric = self.extended_status
+        # Pad string to 10 characters to match above
+        value_hex_str = "{0:#0{1}x}".format(value_numeric, 10)
+        reason = reason_mapping.get(value_hex_str, "Undefined")
+        return reason

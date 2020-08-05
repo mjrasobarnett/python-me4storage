@@ -21,6 +21,9 @@ from me4storage.models.host_group import HostGroup
 from me4storage.models.volume_view import VolumeView, VolumeViewMapping
 from me4storage.models.host_group_view import HostGroupView, HostViewMapping
 from me4storage.models.user import User
+from me4storage.models.unwritable_cache import UnwritableCache
+from me4storage.models.version import Version
+from me4storage.models.certificate_status import CertificateStatus
 
 logger = logging.getLogger(__name__)
 
@@ -235,3 +238,43 @@ def volume_mappings(session, show_all=None, initiators=None):
 
 def host_group_mappings(session, show_all=None, initiators=None):
     return mappings(session, show_all=show_all, show_initiator_mappings=True, initiators=initiators)
+
+def svc_tag(session):
+    response_body = session.get_object('show/system')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('system',[]):
+        results.append(System(_dict))
+
+    return results
+
+def unwritable_cache(session):
+    response_body = session.get_object('show/unwritable-cache')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('unwritable-cache',[]):
+        results.append(UnwritableCache(_dict))
+
+    return results
+
+def versions(session):
+    response_body = session.get_object('show/versions')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('versions',[]):
+        results.append(Version(_dict))
+
+    return results
+
+def certificate(session, controller=None):
+    params = {}
+    if controller is not None:
+        params[controller] = None
+
+    response_body = session.get_object('show/certificate', params)
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('certificate-status',[]):
+        results.append(CertificateStatus(_dict))
+
+    return results

@@ -53,6 +53,21 @@ def ntp(args, session):
     rc = CheckResult.OK
     return rc.value
 
+def user(args, session):
+
+    modify.user(session,
+                name=args.username,
+                password=args.password,
+                base=args.base,
+                interfaces=args.interfaces,
+                roles=args.roles,
+                timeout=args.timeout)
+
+    logger.info(f"Modified user: {args.username}")
+
+    rc = CheckResult.OK
+    return rc.value
+
 def dns(args, session):
 
     modify.dns(session,

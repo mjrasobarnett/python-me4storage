@@ -95,6 +95,95 @@ def disk_layout_me4084_linear_raid6(args, session):
     rc = CheckResult.OK
     return rc.value
 
+def disk_layout_me4024_linear_raid10(args, session):
+    """ Fully configure empty ME4024 into typical disk configuration for Lustre MDTs
+
+    This is a high-level function to fully configure an un-configured ME4024
+    into a typical configuration for use as Lustre MDTs. This configuration
+    involves creating 2x Linear 10-disk RAID10 disk-groups
+
+    """
+
+    systems = show.system(session)
+    system_name = systems[0].system_name
+
+    disk_groups = show.disk_groups(session)
+    if len(disk_groups) > 0:
+        logger.warn(f"There are {len(disk_groups)} disk-groups already present. No action taken...")
+        rc = CheckResult.WARNING
+        return rc.value
+
+    # Many assumptions baked in here.
+    #
+    # We expect 24 disks present, of which 20 are SSDs to be used to create
+    # linear disk groups. The other 4 are either global-spare drives, or are
+    # unused HDDs.
+    #
+    # There are no drawers or other reasons to constrain the layout so we
+    # will simply layout the disk groups linearly from left to right
+    #
+    # We use a simple layout where we simply select disks in steps of '8'
+
+    dg0_start_id = 0
+    dg0_end_id = 9
+    dg1_start_id = 10
+    dg1_end_id = 19
+
+    dg_start_id = 0
+    dg0_disks = []
+    enclosure_id = 0
+    for i in range(0,5):
+        start_id = dg_start_id + (i*2)
+        end_id = start_id + 1
+        dg0_disks.append(f"{enclosure_id}.{start_id}-{end_id}")
+
+    logger.debug("DG0 disks: ",dg0_disks)
+    dg0_ids = ":".join(dg0_disks)
+
+    dg_start_id = 10
+    dg1_disks = []
+    enclosure_id = 0
+    for i in range(0,5):
+        start_id = dg_start_id + (i*2)
+        end_id = start_id + 1
+        dg1_disks.append(f"{enclosure_id}.{start_id}-{end_id}")
+
+    logger.debug("DG1 disks: ",dg1_disks)
+    dg1_ids = ":".join(dg1_disks)
+
+
+    dg0_name = f"dg0-{system_name}"
+    logger.info(f"""Creating disk group: {dg0_name}, """
+                    f"""Disks: {dg0_ids}""")
+    create.linear_disk_group(session,
+                                 name=dg0_name,
+                                 disks=dg0_ids,
+                                 chunk_size="64",
+                                 raid_level="raid10")
+
+    dg1_name = f"dg1-{system_name}"
+    logger.info(f"""Creating disk group: {dg1_name}, """
+                    f"""Disks: {dg1_ids}""")
+    create.linear_disk_group(session,
+                                 name=dg1_name,
+                                 disks=dg1_ids,
+                                 chunk_size="64",
+                                 raid_level="raid10")
+
+    disk_groups = show.disk_groups(session)
+    for dg in disk_groups:
+        volume_name = re.sub(r'^dg([0-9]+\-.*)',r'v\1',dg.name)
+        volume_size = dg.size
+        logger.info(f"""Creating volume: {volume_name}, of size """
+                    f"""{volume_size} on disk group: {dg.name}""")
+        create.linear_volume(session,
+                             name=volume_name,
+                             disk_group=dg.name,
+                             size=volume_size)
+
+    rc = CheckResult.OK
+    return rc.value
+
 def host(args, session):
 
     systems = show.system(session)
@@ -152,7 +241,7 @@ def mapping(args, session):
     host_group = args.host_group
     host_groups = show.host_groups(session)
     if host_group not in [hg.name for hg in host_groups]:
-        logger.error("Host group {host_group} not configured...")
+        logger.error(f"Host group {host_group} not configured...")
         rc = CheckResult.CRITICAL
         return rc.value
 

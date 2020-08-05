@@ -15,7 +15,7 @@ from me4storage.common.nsca import CheckResult
 
 from me4storage.api.session import Session
 from me4storage import commands
-from me4storage.commands import add, check, modify, show, configure, delete
+from me4storage.commands import add, check, modify, show, configure, delete, save, update
 
 def cli():
 
@@ -55,10 +55,15 @@ def cli():
     # Set log level
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
+    # Set paramiko logger to WARNING level because paramiko logging is quite noisy
+    # for our purposes, with many things (like authentication banner) logged to
+    # level INFO, which I prefer not to see
+    logging.getLogger("paramiko").setLevel(logging.WARNING)
     if args.quiet:
         logger.setLevel(logging.WARN)
     if args.debug:
         logger.setLevel(logging.DEBUG)
+        logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
     # Set up colorama
     if args.nocolour:
@@ -108,12 +113,21 @@ def cli():
     auth_group.add_argument(
                 '-H','--api-host',
                 default='localhost',
-                help="API Base URL"
+                help="Controller hostname/IP"
+                )
+    auth_group.add_argument(
+                '--secondary-host',
+                help="Secondary controller hostname/IP"
                 )
     auth_group.add_argument(
                 '-P','--api-port',
                 default='443',
-                help="NEF API Port"
+                help="API Port"
+                )
+    auth_group.add_argument(
+                '--sftp-port',
+                default='1022',
+                help="SFTP service port"
                 )
     auth_group.add_argument(
                 '-u','--api-username',
@@ -148,6 +162,17 @@ def cli():
                     help='''check health status''')
     subparsers.append(check_health_p)
     check_health_p.set_defaults(func=commands.check.health_status)
+
+    check_firmware_p = check_subcommands.add_parser(name='firmware',
+                    parents=[auth_p],
+                    help='''check firmware version''')
+    subparsers.append(check_firmware_p)
+    check_firmware_p.set_defaults(func=commands.check.firmware_version)
+    check_firmware_p.add_argument(
+                '--firmware-version',
+                required=True,
+                help='Expected Firmware bundle version for controllers'
+                )
 
     ####################################################################
     # ADD subcommands
@@ -240,6 +265,44 @@ def cli():
                 dest='system_location',
                 default=None,
                 help="Location of the System"
+                )
+
+    set_user_p = set_subcommands.add_parser(name='user',
+                    parents=[auth_p],
+                    help='''set user parameters''')
+    subparsers.append(set_user_p)
+    set_user_p.set_defaults(func=commands.modify.user)
+    set_user_p.add_argument(
+                '--username',
+                required=True,
+                help="User name"
+                )
+    set_user_p.add_argument(
+                '--password',
+                help="User password"
+                )
+    set_user_p.add_argument(
+                '--interfaces',
+                choices=['cli','wbi','ftp','smis','snmpuser','snmptarget','none'],
+                nargs='+',
+                help="Connection interfaces this user can access the area over"
+                )
+    set_user_p.add_argument(
+                '--roles',
+                choices=['monitor','manage','diagnostic'],
+                nargs='+',
+                help="User roles"
+                )
+    set_user_p.add_argument(
+                '--timeout',
+                default='1800',
+                help="Timeout value in seconds"
+                )
+    set_user_p.add_argument(
+                '--base',
+                choices=['2','10'],
+                default='2',
+                help="Sets the display of storage size to be either base2 or base10"
                 )
 
     set_ntp_p = set_subcommands.add_parser(name='ntp',
@@ -439,6 +502,42 @@ def cli():
     subparsers.append(show_mappings_p)
     show_mappings_p.set_defaults(func=commands.show.mappings)
 
+    show_svc_tag_p = show_subcommands.add_parser(name='svc-tag',
+                    aliases=['service-tag'],
+                    parents=[auth_p],
+                    help='''show svc tag information ''')
+    subparsers.append(show_svc_tag_p)
+    show_svc_tag_p.set_defaults(func=commands.show.svc_tag)
+
+    show_disks_p = show_subcommands.add_parser(name='disks',
+                    parents=[auth_p],
+                    help='''show disks information ''')
+    subparsers.append(show_disks_p)
+    show_disks_p.set_defaults(func=commands.show.disks)
+    show_disks_p.add_argument(
+                '--detailed',
+                action='store_true',
+                help="Show more detailed information"
+                )
+
+    show_versions_p = show_subcommands.add_parser(name='versions',
+                    parents=[auth_p],
+                    help='''show versions information ''')
+    subparsers.append(show_versions_p)
+    show_versions_p.set_defaults(func=commands.show.versions)
+
+    show_certificates_p = show_subcommands.add_parser(name='certificates',
+                    aliases=['certificate'],
+                    parents=[auth_p],
+                    help='''show certificates information ''')
+    subparsers.append(show_certificates_p)
+    show_certificates_p.set_defaults(func=commands.show.certificates)
+    show_certificates_p.add_argument(
+                '--detailed',
+                action='store_true',
+                help="Show more detailed information"
+                )
+
     ####################################################################
     # CONFIGURE subcommands
     ####################################################################
@@ -465,6 +564,14 @@ def cli():
                          '''Linear Raid6 volumes with a 1MiB stripe-width.''')
     subparsers.append(me4084_linear_layout_p)
     me4084_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4084_linear_raid6)
+
+    me4024_linear_layout_p = layout_subcommands.add_parser(name='me4024-linear-raid10',
+                    parents=[auth_p],
+                    help='''Configures ME4084 disk groups using typical '''
+                         '''layout for Lustre MDTs - Provisions 2x 10-disk '''
+                         '''Linear raid10 volumes''')
+    subparsers.append(me4024_linear_layout_p)
+    me4024_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4024_linear_raid10)
 
     configure_host_p = configure_subcommands.add_parser(name='host',
                     parents=[auth_p],
@@ -601,6 +708,81 @@ def cli():
                 '--host-group',
                 dest='delete_mapping_host_group',
                 help="Name of host-group to un-map volumes from"
+                )
+
+    ####################################################################
+    # SAVE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    save_p = subcommands.add_parser(name='save',
+        help='''save commands''')
+    save_subcommands = save_p.add_subparsers(dest='save_subcommands',
+        title='subcommands of save',description='''
+        Below are the core subcommands of program:''')
+    save_subcommands.required = True
+
+    save_logs_p = save_subcommands.add_parser(name='logs',
+                    parents=[auth_p],
+                    help='''save logs''')
+    subparsers.append(save_logs_p)
+    save_logs_p.set_defaults(func=commands.save.logs)
+    save_logs_p.add_argument(
+                '--output-dir',
+                default=None,
+                help="Name of output directory to save logs file to"
+                )
+    save_logs_p.add_argument(
+                '--output-file',
+                default=None,
+                help="Name of output file to save logs to"
+                )
+
+    ####################################################################
+    # UPDATE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    update_p = subcommands.add_parser(name='update',
+        help='''update commands''')
+    update_subcommands = update_p.add_subparsers(dest='update_subcommands',
+        title='subcommands of update',description='''
+        Below are the core subcommands of program:''')
+    update_subcommands.required = True
+
+    update_firmware_p = update_subcommands.add_parser(name='controller-firmware',
+                    parents=[auth_p],
+                    help='''update controller-firmware''')
+    subparsers.append(update_firmware_p)
+    update_firmware_p.set_defaults(func=commands.update.firmware)
+
+    update_firmware_p.add_argument(
+                '--force',
+                action='store_true',
+                help='Proceed with upgrade even if readiness check fails',
+                )
+    update_firmware_p.add_argument(
+                '--controller-firmware',
+                required=True,
+                help='Zip file containing ME4 '
+                'controller firmewarZipfile, or extracted .bin file '
+                'containing ME4 controller firmware'
+                )
+
+    update_certificate_p = update_subcommands.add_parser(name='certificate',
+                    parents=[auth_p],
+                    help='''update controller TLS certificate''')
+    subparsers.append(update_certificate_p)
+    update_certificate_p.set_defaults(func=commands.update.certificate)
+    update_certificate_p.add_argument(
+                '--tls-certificate', '--certificate',
+                required=True,
+                help='PEM encoded TLS public cert',
+                )
+    update_certificate_p.add_argument(
+                '--tls-key', '--key',
+                required=True,
+                help='TLS RSA key',
                 )
 
     #########
