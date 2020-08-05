@@ -565,6 +565,14 @@ def cli():
     subparsers.append(me4084_linear_layout_p)
     me4084_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4084_linear_raid6)
 
+    me4024_linear_layout_p = layout_subcommands.add_parser(name='me4024-linear-raid10',
+                    parents=[auth_p],
+                    help='''Configures ME4084 disk groups using typical '''
+                         '''layout for Lustre MDTs - Provisions 2x 10-disk '''
+                         '''Linear raid10 volumes''')
+    subparsers.append(me4024_linear_layout_p)
+    me4024_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4024_linear_raid10)
+
     configure_host_p = configure_subcommands.add_parser(name='host',
                     parents=[auth_p],
                     help='''show hosts information ''')
