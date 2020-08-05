@@ -36,3 +36,23 @@ class User(Model):
         'trap-destination': '',
         }
 
+    @property
+    def ftp_enabled(self):
+        if self.interface_access_ftp == 'x':
+            return True
+        else:
+            return False
+
+    @property
+    def web_enabled(self):
+        if self.interface_access_wbi == 'x':
+            return True
+        else:
+            return False
+
+    @property
+    def cli_enabled(self):
+        if self.interface_access_cli == 'x':
+            return True
+        else:
+            return False

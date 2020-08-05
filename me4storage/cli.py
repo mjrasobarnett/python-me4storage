@@ -113,7 +113,11 @@ def cli():
     auth_group.add_argument(
                 '-H','--api-host',
                 default='localhost',
-                help="API Base URL"
+                help="Controller hostname/IP"
+                )
+    auth_group.add_argument(
+                '--secondary-host',
+                help="Secondary controller hostname/IP"
                 )
     auth_group.add_argument(
                 '-P','--api-port',
@@ -488,6 +492,7 @@ def cli():
     show_mappings_p.set_defaults(func=commands.show.mappings)
 
     show_svc_tag_p = show_subcommands.add_parser(name='svc-tag',
+                    aliases=['service-tag'],
                     parents=[auth_p],
                     help='''show svc tag information ''')
     subparsers.append(show_svc_tag_p)
@@ -499,6 +504,24 @@ def cli():
     subparsers.append(show_disks_p)
     show_disks_p.set_defaults(func=commands.show.disks)
     show_disks_p.add_argument(
+                '--detailed',
+                action='store_true',
+                help="Show more detailed information"
+                )
+
+    show_versions_p = show_subcommands.add_parser(name='versions',
+                    parents=[auth_p],
+                    help='''show versions information ''')
+    subparsers.append(show_versions_p)
+    show_versions_p.set_defaults(func=commands.show.versions)
+
+    show_certificates_p = show_subcommands.add_parser(name='certificates',
+                    aliases=['certificate'],
+                    parents=[auth_p],
+                    help='''show certificates information ''')
+    subparsers.append(show_certificates_p)
+    show_certificates_p.set_defaults(func=commands.show.certificates)
+    show_certificates_p.add_argument(
                 '--detailed',
                 action='store_true',
                 help="Show more detailed information"
@@ -694,6 +717,53 @@ def cli():
                 '--output-file',
                 default=None,
                 help="Name of output file to save logs to"
+                )
+
+    ####################################################################
+    # UPDATE subcommands
+    ####################################################################
+
+    # Top level subcommand
+    update_p = subcommands.add_parser(name='update',
+        help='''update commands''')
+    update_subcommands = update_p.add_subparsers(dest='update_subcommands',
+        title='subcommands of update',description='''
+        Below are the core subcommands of program:''')
+    update_subcommands.required = True
+
+    update_firmware_p = update_subcommands.add_parser(name='controller-firmware',
+                    parents=[auth_p],
+                    help='''update controller-firmware''')
+    subparsers.append(update_firmware_p)
+    update_firmware_p.set_defaults(func=commands.update.firmware)
+
+    update_firmware_p.add_argument(
+                '--force',
+                action='store_true',
+                help='Proceed with upgrade even if readiness check fails',
+                )
+    update_firmware_p.add_argument(
+                '--controller-firmware',
+                required=True,
+                help='Zip file containing ME4 '
+                'controller firmewarZipfile, or extracted .bin file '
+                'containing ME4 controller firmware'
+                )
+
+    update_certificate_p = update_subcommands.add_parser(name='certificate',
+                    parents=[auth_p],
+                    help='''update controller TLS certificate''')
+    subparsers.append(update_certificate_p)
+    update_certificate_p.set_defaults(func=commands.update.certificate)
+    update_certificate_p.add_argument(
+                '--tls-certificate', '--certificate',
+                required=True,
+                help='PEM encoded TLS public cert',
+                )
+    update_certificate_p.add_argument(
+                '--tls-key', '--key',
+                required=True,
+                help='TLS RSA key',
                 )
 
     #########

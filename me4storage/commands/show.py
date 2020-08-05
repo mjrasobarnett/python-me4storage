@@ -4,6 +4,7 @@ from colorama import Fore, Style
 from terminaltables import SingleTable
 from pprint import pformat
 import datetime
+import re
 
 from me4storage.api.session import Session
 from me4storage.common.exceptions import ApiError
@@ -11,6 +12,7 @@ from me4storage.common.nsca import CheckResult
 import me4storage.common.util as util
 import me4storage.common.tables as tables
 import me4storage.common.formatters
+import me4storage.formatters as formatters
 
 from me4storage.api import show
 import me4storage.common.tables as tables
@@ -454,6 +456,74 @@ def mappings(args, session):
 
         # Print table
         tables.display_table(table_header, table_rows, style='bordered')
+
+    rc = CheckResult.OK
+    return rc.value
+
+def versions(args, session):
+
+    systems = show.system(session)
+
+    versions = show.versions(session)
+
+    for system in systems:
+        print(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
+
+        # List of columns to print, as a tuple of attribute name,
+        # and column title
+        row_labels = [('bundle_version','Bundle Version'),
+                      ('sc_fw','Storage Controller Firmware Version'),
+                      ('sc_loader','Storage Controller Loader Version'),
+                      ('mc_fw','Management Controller Firmware Version'),
+                      ('mc_loader','Management Controller Loader Version'),
+                      ('ec_fw','Expander Controller Firmware Version'),
+                      ]
+
+        columns = [('controller-a-versions','Controller A'),
+                   ('controller-b-versions','Controller B'),
+                  ]
+
+        # Extract titles for table header
+        table_header = [''] + [column[1] for column in columns]
+        table_rows = []
+
+        for attribute, label in row_labels:
+
+            logger.debug(attribute)
+            row = []
+            row.append(label)
+
+            # Loop over the controllers listed in 'columns', where
+            # we identify which controller the 'version' corresponds to
+            # by checking if the version's 'object_name' property matches
+            # what we've defined here in 'columns'
+            for controller_name, _ in columns:
+                logger.debug(controller_name)
+                for version in versions:
+                    if version.object_name == controller_name:
+                        try:
+                            row.append(getattr(version, attribute))
+                        except AttributeError as err:
+                            raise ApiError("No attribute '{}' in version "
+                                           "definition:\n{}".format(
+                                                attribute,
+                                                pformat(version),
+                                                ))
+
+            table_rows.append(row)
+
+        # Print table
+        tables.display_table(table_header, table_rows, style='bordered')
+
+
+    rc = CheckResult.OK
+    return rc.value
+
+def certificates(args, session):
+    system = next(iter(show.system(session)))
+    certificates = show.certificate(session, controller='both')
+
+    print(formatters.format_certificates(system, certificates, args.detailed))
 
     rc = CheckResult.OK
     return rc.value
