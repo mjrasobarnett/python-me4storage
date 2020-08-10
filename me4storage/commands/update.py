@@ -90,7 +90,7 @@ def firmware(args, session):
                 return CheckResult.CRITICAL.value
 
             logger.info(f'Extracting firmware file to {tmpdirname}/{firmware_file}')
-            zipobj.extract(firmware_file, path=tmpdirname)
+            firmware_path = zipobj.extract(firmware_file, path=tmpdirname)
 
             version_regex = re.compile(
                         r"^(?P<bundle_version>[\w-]+)"
@@ -113,7 +113,7 @@ def firmware(args, session):
                               password=args.api_password,
                               cnopts=cnopts,
                               ) as sftp:
-                sftp.put(firmware_file, remotepath="flash", confirm=False)
+                sftp.put(firmware_path, remotepath="/flash", confirm=False)
 
             logger.info("Upload complete. Firmware update happens asynchronously in the background."
                          "Update can take from 10-20 minutes to complete.")
