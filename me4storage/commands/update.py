@@ -115,8 +115,8 @@ def firmware(args, session):
                               ) as sftp:
                 sftp.put(firmware_path, remotepath="/flash", confirm=False)
 
-            logger.info("Upload complete. Firmware update happens asynchronously in the background."
-                         "Update can take from 10-20 minutes to complete.")
+            logger.info("Upload complete. Firmware update happens asynchronously in the background. "
+                        "Update can take from 10-20 minutes to complete.")
 
     return CheckResult.OK.value
 
@@ -163,8 +163,8 @@ def certificate(args, session):
     logger.info("Uploads complete. Restarting both management controllers to take effect...")
     restart.mc(session, controller='both')
 
-    # Wait a minute before attempting to start new connections
-    time.sleep(120)
+    # Wait 5 minutes before attempting to start new connections
+    time.sleep(300)
     # Establish a new session here, since we have restarted the management
     # ports. Boost the number of retries to catch indeterminate time until it's online
     session = Session(host = args.api_host,
