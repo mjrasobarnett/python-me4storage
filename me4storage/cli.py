@@ -15,7 +15,8 @@ from me4storage.common.nsca import CheckResult
 
 from me4storage.api.session import Session
 from me4storage import commands
-from me4storage.commands import add, check, modify, show, configure, delete, save, update
+from me4storage.commands import add, check, modify, show, configure
+from me4storage.commands import delete, save, update, restart
 
 def cli():
 
@@ -783,6 +784,25 @@ def cli():
                 '--tls-key', '--key',
                 required=True,
                 help='TLS RSA key',
+                )
+
+    # Top level subcommand
+    restart_p = subcommands.add_parser(name='restart',
+        help='''restart commands''')
+    restart_subcommands = restart_p.add_subparsers(dest='restart_subcommands',
+        title='subcommands of restart',description='''
+        Below are the core subcommands of program:''')
+    restart_subcommands.required = True
+
+    restart_controller_p = restart_subcommands.add_parser(name='management-controllers',
+                    parents=[auth_p],
+                    help='''restart management-controllers''')
+    subparsers.append(restart_controller_p)
+    restart_controller_p.set_defaults(func=commands.restart.management_controllers)
+    restart_controller_p.add_argument(
+                '--controller',
+                choices=['A','B','0','1'],
+                help='Choose controller to restart (if not set, will restart both)',
                 )
 
     #########
