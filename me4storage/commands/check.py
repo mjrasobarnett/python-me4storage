@@ -18,14 +18,12 @@ logger = logging.getLogger(__name__)
 
 def health_status(args, session):
 
-    response = show.system(session)
-    logger.debug(response)
+    system = next(iter(show.system(session)))
 
     rc = CheckResult.OK
-    for system in response.get('system',[]):
-        print(f"System: {system['system-name']}")
-        print(f"\tHealth: {system['health']}")
-        print(f"\tProduct Type: {system['product-id']}")
+    print(f"System: {system.system_name}")
+    print(f"\tHealth: {system.health}")
+    print(f"\tProduct Type: {system.product_id}")
 
     return rc.value
 
