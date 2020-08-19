@@ -502,6 +502,11 @@ def cli():
                     help='''show mappings information ''')
     subparsers.append(show_mappings_p)
     show_mappings_p.set_defaults(func=commands.show.mappings)
+    show_mappings_p.add_argument(
+                '--ansible-dm-multipath',
+                action='store_true',
+                help="Format mappings into format compatible with ansible-dm-multipath"
+                )
 
     show_svc_tag_p = show_subcommands.add_parser(name='svc-tag',
                     aliases=['service-tag'],

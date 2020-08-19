@@ -424,38 +424,44 @@ def mappings(args, session):
         print(f"\n{Fore.WHITE}{Style.BRIGHT}Host Group: {host_group_view.group_name}{Style.RESET_ALL}")
         mappings = host_group_view.host_view_mappings
 
-        # List of columns to print, as a tuple of attribute name,
-        # and column title
-        columns = [('volume','Volume'),
-                   ('volume_serial','Volume Serial'),
-                   ('access','Access'),
-                   ('lun','LUN'),
-                   ('ports','Ports'),
-                   ]
+        if args.ansible_dm_multipath:
+            print("\nmultipath_multipaths:")
+            for mapping in sorted(mappings, key=lambda x: x.volume):
+                print(f"  - alias: '{mapping.volume}'\n"
+                      f"    wwid: '36{mapping.volume_serial}'")
+        else:
+            # List of columns to print, as a tuple of attribute name,
+            # and column title
+            columns = [('volume','Volume'),
+                       ('volume_serial','Volume Serial'),
+                       ('access','Access'),
+                       ('lun','LUN'),
+                       ('ports','Ports'),
+                       ]
 
-        # Extract titles for table header
-        table_header = ['Host Group'] + [x[1] for x in columns]
-        table_rows = []
+            # Extract titles for table header
+            table_header = ['Host Group'] + [x[1] for x in columns]
+            table_rows = []
 
-        for mapping in mappings:
+            for mapping in mappings:
 
-            row = []
-            row.append(host_group_view.group_name)
+                row = []
+                row.append(host_group_view.group_name)
 
-            for attribute, title in columns:
-                try:
-                    row.append(getattr(mapping,attribute))
-                except AttributeError as err:
-                    raise ApiError("No attribute '{}' in mapping "
-                                   "definition:\n{}".format(
-                                        attribute,
-                                        pformat(mapping),
-                                        ))
+                for attribute, title in columns:
+                    try:
+                        row.append(getattr(mapping,attribute))
+                    except AttributeError as err:
+                        raise ApiError("No attribute '{}' in mapping "
+                                       "definition:\n{}".format(
+                                            attribute,
+                                            pformat(mapping),
+                                            ))
 
-            table_rows.append(row)
+                table_rows.append(row)
 
-        # Print table
-        tables.display_table(table_header, table_rows, style='bordered')
+            # Print table
+            tables.display_table(table_header, table_rows, style='bordered')
 
     rc = CheckResult.OK
     return rc.value
