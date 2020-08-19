@@ -427,8 +427,28 @@ def mappings(args, session):
         if args.ansible_dm_multipath:
             print("\nmultipath_multipaths:")
             for mapping in sorted(mappings, key=lambda x: x.volume):
+                ####
+                # Here we take the volume_serial as returned by the ME4 API
+                # and convert it into a format that the Linux host will see
+                # as returned by the scsi_id utility.
+                #
+                # scsi_id will show the id starting with '3' and '6', as
+                # the NAA 'type' for this device is '3', and then it shows
+                # the page 0x83 identifier, which has a NAA value of '6'
+                linux_scsi_id = f"36{mapping.volume_serial}"
+
+                # There is an additional quirk with ME4 that we didn't see before
+                # with MD storage. The scsi_id on Linux appears to change
+                # the position of some zeroes within the id.
+                linux_scsi_id = re.sub(r"^(3600c0ff)" # Match common starting sequence, after which linux shows 3 zeros
+                                       r"(\w+?)"      # Match id sequence up to first group of 4 zeros
+                                       r"0000"        # Match 0000, which doesn't appear on linux
+                                       r"(\w+?)$",    # Match remaining id sequence
+                                       r"\g<1>000\g<2>\g<3>", # Replacement regex, removing the middle 4 zeros
+                                       linux_scsi_id)         # and adding the 3 zeros after the first capture group
+
                 print(f"  - alias: '{mapping.volume}'\n"
-                      f"    wwid: '36{mapping.volume_serial}'")
+                      f"    wwid: '{linux_scsi_id}'")
         else:
             # List of columns to print, as a tuple of attribute name,
             # and column title
