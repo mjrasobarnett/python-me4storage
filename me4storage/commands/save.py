@@ -36,7 +36,7 @@ def logs(args, session):
 
         system_name = systems[0].system_name
         svc_tag = service_tags[0].service_tag
-        date = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        date = datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
         filename = f"logs_{system_name}_{svc_tag}_{date}.zip"
 
     output_file = os.path.join(output_dir, filename)
