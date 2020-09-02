@@ -80,7 +80,7 @@ def host_group(session,
 
 def mapping(session,
          volumes,
-         initiators,
+         initiators=None,
          lun=None,
          access=None,
          ):
@@ -89,7 +89,7 @@ def mapping(session,
 
     if isinstance(volumes, list):
         data[",".join(volumes)] = None
-    if isinstance(initiators, list):
+    if (initiators is not None) and isinstance(initiators, list):
         data['initiator'] = ",".join(initiators)
     if lun is not None:
         data['lun'] = lun

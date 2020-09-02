@@ -238,18 +238,23 @@ def host(args, session):
 
 def mapping(args, session):
     # Check if requested host group is configured
-    host_group = args.host_group
-    host_groups = show.host_groups(session)
-    if host_group not in [hg.name for hg in host_groups]:
-        logger.error(f"Host group {host_group} not configured...")
-        rc = CheckResult.CRITICAL
-        return rc.value
+    if args.all_initiators:
+        initiators = None
+    else:
+        host_group = args.host_group
+        # Check host_group exists
+        host_groups = show.host_groups(session)
+        if host_group not in [hg.name for hg in host_groups]:
+            logger.error(f"Host group {host_group} not configured...")
+            rc = CheckResult.CRITICAL
+            return rc.value
 
-    # Define initiators string, according to required syntax for mapping
-    # See: https://www.dell.com/support/manuals/uk/en/ukbsdt1/powervault-me4012/me4_series_cli_pub/command-syntax?guid=guid-08ed6612-4713-4221-bc66-e3a6808b422a&lang=en-us
-    initiators=f"{host_group}.*.*"
+        # Define initiators string, according to required syntax for mapping
+        # See: https://www.dell.com/support/manuals/uk/en/ukbsdt1/powervault-me4012/me4_series_cli_pub/command-syntax?guid=guid-08ed6612-4713-4221-bc66-e3a6808b422a&lang=en-us
+        initiators=[f"{host_group}.*.*"]
 
     volumes = show.volumes(session)
+
     for index, volume in enumerate(volumes):
         # Define LUN number. LUN 1 is reserved for the chassis itself
         lun_number = index+2
@@ -257,7 +262,7 @@ def mapping(args, session):
                     f"{lun_number} to initiators: {initiators}")
         create.mapping(session,
                        access="read-write",
-                       initiators=[initiators],
+                       initiators=initiators,
                        lun=str(lun_number),
                        volumes=[volume.volume_name])
 

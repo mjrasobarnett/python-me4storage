@@ -606,9 +606,16 @@ def cli():
                     help='''configure volume mappings''')
     subparsers.append(configure_mapping_p)
     configure_mapping_p.set_defaults(func=commands.configure.mapping)
-    configure_mapping_p.add_argument(
+    configure_mapping_g = configure_mapping_p.add_mutually_exclusive_group(required=True)
+    configure_mapping_g.add_argument(
+                '--all',
+                action='store_true',
+                dest='all_initiators',
+                help="Map volume to all initiators"
+                )
+    configure_mapping_g.add_argument(
                 '--host-group',
-                required=True,
+                default=None,
                 help="Name of host-group to map volumes to."
                 )
 
