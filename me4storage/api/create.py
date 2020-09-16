@@ -32,6 +32,39 @@ def linear_disk_group(session,
     response = session.put('add/disk-group',data)
     return response
 
+def virtual_disk_group(session,
+           name,
+           disks,
+           raid_level,
+           pool,
+           ):
+
+    data = {}
+
+    data['type'] = 'virtual'
+    data[name] = None
+    data['disks'] = disks
+    data['level'] = raid_level
+    data['pool'] = pool
+
+    response = session.put('add/disk-group',data)
+    return response
+
+def virtual_volume(session,
+                  name,
+                  pool,
+                  size,
+                  ):
+
+    data = {}
+
+    data[name] = None
+    data['pool'] = pool
+    data['size'] = size
+
+    response = session.put('create/volume',data)
+    return response
+
 def linear_volume(session,
                   name,
                   disk_group,

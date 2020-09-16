@@ -180,4 +180,25 @@ def user(session,
     response = session.put('set/user',data)
     return response
 
+def pool(session,
+         pool,
+         overcommit=None,
+         low_threshold=None,
+         middle_threshold=None,
+         ):
 
+    data = {}
+
+    data[pool] = None
+    if overcommit is not None:
+        if overcommit:
+            data['overcommit'] = 'on'
+        else:
+            data['overcommit'] = 'off'
+    if low_threshold is not None:
+        data['low-threshold'] = '{}%'.format(low_threshold)
+    if middle_threshold is not None:
+        data['middle-threshold'] = '{}%'.format(middle_threshold)
+
+    response = session.put('set/pool',data)
+    return response

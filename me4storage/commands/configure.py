@@ -124,23 +124,12 @@ def disk_layout_me4024_linear_raid10(args, session):
     #
     # We use a simple layout where we simply select disks in steps of '8'
 
-    dg0_start_id = 0
-    dg0_end_id = 9
-    dg1_start_id = 10
-    dg1_end_id = 19
+    dg1_start_id = 0
+    dg1_end_id = 9
+    dg2_start_id = 10
+    dg2_end_id = 19
 
     dg_start_id = 0
-    dg0_disks = []
-    enclosure_id = 0
-    for i in range(0,5):
-        start_id = dg_start_id + (i*2)
-        end_id = start_id + 1
-        dg0_disks.append(f"{enclosure_id}.{start_id}-{end_id}")
-
-    logger.debug("DG0 disks: ",dg0_disks)
-    dg0_ids = ":".join(dg0_disks)
-
-    dg_start_id = 10
     dg1_disks = []
     enclosure_id = 0
     for i in range(0,5):
@@ -148,18 +137,20 @@ def disk_layout_me4024_linear_raid10(args, session):
         end_id = start_id + 1
         dg1_disks.append(f"{enclosure_id}.{start_id}-{end_id}")
 
-    logger.debug("DG1 disks: ",dg1_disks)
+    logger.debug("dg1 disks: ",dg1_disks)
     dg1_ids = ":".join(dg1_disks)
 
+    dg_start_id = 10
+    dg2_disks = []
+    enclosure_id = 0
+    for i in range(0,5):
+        start_id = dg_start_id + (i*2)
+        end_id = start_id + 1
+        dg2_disks.append(f"{enclosure_id}.{start_id}-{end_id}")
 
-    dg0_name = f"dg0-{system_name}"
-    logger.info(f"""Creating disk group: {dg0_name}, """
-                    f"""Disks: {dg0_ids}""")
-    create.linear_disk_group(session,
-                                 name=dg0_name,
-                                 disks=dg0_ids,
-                                 chunk_size="64",
-                                 raid_level="raid10")
+    logger.debug("dg2 disks: ",dg2_disks)
+    dg2_ids = ":".join(dg2_disks)
+
 
     dg1_name = f"dg1-{system_name}"
     logger.info(f"""Creating disk group: {dg1_name}, """
@@ -167,6 +158,15 @@ def disk_layout_me4024_linear_raid10(args, session):
     create.linear_disk_group(session,
                                  name=dg1_name,
                                  disks=dg1_ids,
+                                 chunk_size="64",
+                                 raid_level="raid10")
+
+    dg2_name = f"dg2-{system_name}"
+    logger.info(f"""Creating disk group: {dg2_name}, """
+                    f"""Disks: {dg2_ids}""")
+    create.linear_disk_group(session,
+                                 name=dg2_name,
+                                 disks=dg2_ids,
                                  chunk_size="64",
                                  raid_level="raid10")
 
@@ -180,6 +180,105 @@ def disk_layout_me4024_linear_raid10(args, session):
                              name=volume_name,
                              disk_group=dg.name,
                              size=volume_size)
+
+    rc = CheckResult.OK
+    return rc.value
+
+def disk_layout_me4024_virtual_raid10(args, session):
+    """ Fully configure empty ME4024 into typical disk configuration for Lustre MDTs
+
+    This is a high-level function to fully configure an un-configured ME4024
+    into a typical configuration for use as Lustre MDTs. This configuration
+    involves creating 2x Virtual 10-disk RAID10 disk-groups, and then
+    creating a single volume on each disk-group.
+
+    Each volume utilise 95% of the available disk space in the disk-group, so that
+    there is available space in the disk-group for snapshot data to be written.
+
+    """
+
+    mdt_size = args.mdt_size
+    mgt_size = args.mgt_size
+
+    systems = show.system(session)
+    system_name = systems[0].system_name
+
+    disk_groups = show.disk_groups(session)
+    if len(disk_groups) > 0:
+        logger.warn(f"There are {len(disk_groups)} disk-groups already present. No action taken...")
+        rc = CheckResult.WARNING
+        return rc.value
+
+    # Many assumptions baked in here.
+    #
+    # We expect 24 disks present, of which 20 are SSDs to be used to create
+    # disk groups. The other 4 are HDDs, that we fasion into a small disk group
+    # for use as MGT
+    #
+    # There are no drawers or other reasons to constrain the layout so we
+    # will simply layout the disk groups linearly from left to right
+    #
+    # We use a simple layout where we simply select disks in steps of '8'
+
+    dg1_start_id = 0
+    dg1_end_id = 9
+    dg2_start_id = 10
+    dg2_end_id = 19
+
+    dg_start_id = 0
+    dg1_disks = []
+    enclosure_id = 0
+    for i in range(0,5):
+        start_id = dg_start_id + (i*2)
+        end_id = start_id + 1
+        dg1_disks.append(f"{enclosure_id}.{start_id}-{end_id}")
+
+    logger.debug(f"dg1 disks: {dg1_disks}")
+    dg1_ids = ":".join(dg1_disks)
+
+    dg_start_id = 10
+    dg2_disks = []
+    enclosure_id = 0
+    for i in range(0,5):
+        start_id = dg_start_id + (i*2)
+        end_id = start_id + 1
+        dg2_disks.append(f"{enclosure_id}.{start_id}-{end_id}")
+
+    logger.debug(f"dg2 disks: {dg2_disks}")
+    dg2_ids = ":".join(dg2_disks)
+
+
+    dg1_name = f"dg1-{system_name}"
+    logger.info(f"""Creating disk group: {dg1_name}, """
+                    f"""Disks: {dg1_ids}""")
+    create.virtual_disk_group(session,
+                                 name=dg1_name,
+                                 disks=dg1_ids,
+                                 raid_level="raid10",
+                                 pool='A')
+
+    dg2_name = f"dg2-{system_name}"
+    logger.info(f"""Creating disk group: {dg2_name}, """
+                    f"""Disks: {dg2_ids}""")
+    create.virtual_disk_group(session,
+                                 name=dg2_name,
+                                 disks=dg2_ids,
+                                 raid_level="raid10",
+                                 pool='B')
+
+    # Disable overcommit on both pools
+    modify.pool(session, pool='A', overcommit=False)
+    modify.pool(session, pool='B', overcommit=False)
+
+    disk_groups = show.disk_groups(session)
+
+    logger.info(f"""Creating volume: v1-{system_name}, of size """
+                    f"""{mdt_size} on pool A""")
+    create.virtual_volume(session, f"v1-{system_name}", pool='A', size=f"{mdt_size}GiB")
+    create.virtual_volume(session, f"v2-{system_name}", pool='B', size=f"{mdt_size}GiB")
+
+    if mgt_size is not None:
+        create.virtual_volume(session, f"v3-{system_name}", pool='A', size=f"{mgt_size}GiB")
 
     rc = CheckResult.OK
     return rc.value

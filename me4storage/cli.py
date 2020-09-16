@@ -579,6 +579,26 @@ def cli():
     subparsers.append(me4024_linear_layout_p)
     me4024_linear_layout_p.set_defaults(func=commands.configure.disk_layout_me4024_linear_raid10)
 
+    me4024_virtual_layout_p = layout_subcommands.add_parser(name='me4024-virtual-raid10',
+                    parents=[auth_p],
+                    help='''Configures ME4084 disk groups using typical '''
+                         '''layout for Lustre MDTs - Provisions 2x 10-disk '''
+                         '''virtual raid10 volumes''')
+    subparsers.append(me4024_virtual_layout_p)
+    me4024_virtual_layout_p.set_defaults(func=commands.configure.disk_layout_me4024_virtual_raid10)
+    me4024_virtual_layout_p.add_argument(
+                '--mdt-size',
+                type=int,
+                required=True,
+                help="Size of the MDT volume to create in GiB"
+                )
+    me4024_virtual_layout_p.add_argument(
+                '--mgt-size',
+                type=int,
+                required=False,
+                help="Optional, size of the MDT volume to create in GiB"
+                )
+
     configure_host_p = configure_subcommands.add_parser(name='host',
                     parents=[auth_p],
                     help='''show hosts information ''')
