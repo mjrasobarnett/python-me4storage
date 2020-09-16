@@ -802,6 +802,29 @@ def cli():
                 'containing ME4 controller firmware'
                 )
 
+    update_disk_firmware_p = update_subcommands.add_parser(name='disk-firmware',
+                    parents=[auth_p],
+                    help='''update disk-firmware''')
+    subparsers.append(update_disk_firmware_p)
+    update_disk_firmware_p.set_defaults(func=commands.update.disk_firmware)
+
+    update_disk_firmware_p.add_argument(
+                '--force',
+                action='store_true',
+                help='Proceed with upgrade even if readiness check fails',
+                )
+    update_disk_firmware_p.add_argument(
+                '--yes',
+                action='store_true',
+                dest='do_not_prompt',
+                help="Don't prompt for confirmation to proceed with update",
+                )
+    update_disk_firmware_p.add_argument(
+                '--disk-firmware',
+                required=True,
+                help='Zip file containing ME4 disk firmware'
+                )
+
     update_certificate_p = update_subcommands.add_parser(name='certificate',
                     parents=[auth_p],
                     help='''update controller TLS certificate''')
