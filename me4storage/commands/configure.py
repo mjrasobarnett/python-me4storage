@@ -273,11 +273,15 @@ def disk_layout_me4024_virtual_raid10(args, session):
     disk_groups = show.disk_groups(session)
 
     logger.info(f"""Creating volume: v1-{system_name}, of size """
-                    f"""{mdt_size} on pool A""")
+                f"""{mdt_size}GiB on pool A""")
     create.virtual_volume(session, f"v1-{system_name}", pool='A', size=f"{mdt_size}GiB")
+    logger.info(f"""Creating volume: v2-{system_name}, of size """
+                f"""{mdt_size}GiB on pool B""")
     create.virtual_volume(session, f"v2-{system_name}", pool='B', size=f"{mdt_size}GiB")
 
     if mgt_size is not None:
+        logger.info(f"""Creating volume: v3-{system_name}, of size """
+                    f"""{mgt_size}GiB on pool A""")
         create.virtual_volume(session, f"v3-{system_name}", pool='A', size=f"{mgt_size}GiB")
 
     rc = CheckResult.OK
