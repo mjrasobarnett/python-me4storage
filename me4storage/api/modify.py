@@ -202,3 +202,15 @@ def pool(session,
 
     response = session.put('set/pool',data)
     return response
+
+def advanced_settings(session,
+         background_scrub_interval=None,
+         ):
+
+    data = {}
+
+    if background_scrub_interval is not None:
+        data['background-scrub-interval'] = '{}'.format(background_scrub_interval)
+
+    response = session.put('set/advanced-settings',data)
+    return response

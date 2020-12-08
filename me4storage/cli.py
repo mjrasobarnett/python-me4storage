@@ -444,6 +444,17 @@ def cli():
                 help="Sender name, joinged with domain to form the 'from' address"
                 )
 
+    set_advanced_settings_p = set_subcommands.add_parser(name='advanced-settings',
+                    parents=[auth_p],
+                    help='''set advanced_settings notification parameters''')
+    subparsers.append(set_advanced_settings_p)
+    set_advanced_settings_p.set_defaults(func=commands.modify.advanced_settings)
+    set_advanced_settings_p.add_argument(
+                '--background-scrub-interval',
+                default=None,
+                help="Sets the interval in hours between background disk-group scrub"
+                )
+
     ####################################################################
     # SHOW subcommands
     ####################################################################
@@ -543,6 +554,13 @@ def cli():
                 action='store_true',
                 help="Show more detailed information"
                 )
+
+    show_configuration_p = show_subcommands.add_parser(name='configuration',
+                    aliases=['certificate'],
+                    parents=[auth_p],
+                    help='''show configuration information ''')
+    subparsers.append(show_configuration_p)
+    show_configuration_p.set_defaults(func=commands.show.configuration)
 
     ####################################################################
     # CONFIGURE subcommands

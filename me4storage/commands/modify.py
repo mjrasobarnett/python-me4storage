@@ -40,6 +40,17 @@ def system_info(args, session):
     rc = CheckResult.OK
     return rc.value
 
+def advanced_settings(args, session):
+
+    modify.advanced_settings(session,
+                       background_scrub_interval=args.background_scrub_interval,
+                       )
+
+    commands.show.configuration(args, session)
+
+    rc = CheckResult.OK
+    return rc.value
+
 
 def ntp(args, session):
 

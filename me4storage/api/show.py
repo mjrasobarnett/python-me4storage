@@ -24,6 +24,7 @@ from me4storage.models.user import User
 from me4storage.models.unwritable_cache import UnwritableCache
 from me4storage.models.version import Version
 from me4storage.models.certificate_status import CertificateStatus
+from me4storage.models.advanced_settings_table import AdvancedSettingsTable
 
 logger = logging.getLogger(__name__)
 
@@ -276,5 +277,14 @@ def certificate(session, controller=None):
     results = []
     for _dict in response_body.get('certificate-status',[]):
         results.append(CertificateStatus(_dict))
+
+    return results
+
+def advanced_settings(session):
+    response_body = session.get_object('show/advanced-settings')
+    # iterate over list of results and instantiate model object for each entry
+    results = []
+    for _dict in response_body.get('advanced-settings-table',[]):
+        results.append(AdvancedSettingsTable(_dict))
 
     return results

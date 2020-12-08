@@ -553,3 +553,17 @@ def certificates(args, session):
 
     rc = CheckResult.OK
     return rc.value
+
+def configuration(args, session):
+
+    system = next(iter(show.system(session)))
+    service_tags = show.service_tag_info(session)
+
+    print(formatters.format_system(system, service_tags))
+
+    advanced_settings = next(iter(show.advanced_settings(session)))
+
+    print(formatters.format_advanced_settings(advanced_settings))
+
+    rc = CheckResult.OK
+    return rc.value
