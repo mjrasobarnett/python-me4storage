@@ -16,7 +16,7 @@ from me4storage.common.nsca import CheckResult
 from me4storage.api.session import Session
 from me4storage import commands
 from me4storage.commands import add, check, modify, show, configure
-from me4storage.commands import delete, save, update, restart
+from me4storage.commands import delete, save, update, restart, email
 
 def cli():
 
@@ -144,6 +144,26 @@ def cli():
                 '--api-disable-tls-verification',
                 action='store_true',
                 help="API disable TLS certificate verification"
+                )
+
+
+    email_p = argparse.ArgumentParser(add_help=False)
+    email_group = email_p.add_argument_group('Email')
+    email_group.add_argument(
+                '--recipient',
+                dest='email_recipient',
+                help='Email Address to send to',
+                )
+    email_group.add_argument(
+                '--sender',
+                dest='email_sender',
+                help='Email Address to send from',
+                )
+    email_group.add_argument(
+                '--prefix',
+                dest='email_prefix',
+                default='Storage INFO',
+                help='Email Address to send from',
                 )
 
     ####################################################################
@@ -858,6 +878,28 @@ def cli():
                 required=True,
                 help='TLS RSA key',
                 )
+
+    ####################################################################
+    # EMAIL subcommands
+    ####################################################################
+
+    # Top level subcommand
+    email_parser_p = subcommands.add_parser(name='email',
+        help='''email commands''')
+    email_subcommands = email_parser_p.add_subparsers(dest='email_subcommands',
+        title='subcommands of email',description='''
+        Below are the core subcommands of program:''')
+    email_subcommands.required = True
+
+    email_logs_p = email_subcommands.add_parser(name='logs',
+                    parents=[auth_p, email_p],
+                    help='''email logs''')
+    subparsers.append(email_logs_p)
+    email_logs_p.set_defaults(func=commands.email.logs)
+
+    ####################################################################
+    # RESTART subcommands
+    ####################################################################
 
     # Top level subcommand
     restart_p = subcommands.add_parser(name='restart',

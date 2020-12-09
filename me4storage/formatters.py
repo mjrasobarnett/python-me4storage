@@ -11,6 +11,14 @@ from pprint import pformat
 
 logger = logging.getLogger(__name__)
 
+def format_health(system, detailed=False):
+    output = []
+    output.append(f"System: {system.system_name}")
+    output.append(f"\tHealth: {system.health}")
+    output.append(f"\tProduct Type: {system.product_id}")
+
+    return "\n".join(output)
+
 def format_certificates(system, certificates, detailed=False):
     output = []
     output.append(f"{Fore.WHITE}{Style.BRIGHT}System: {system.system_name}{Style.RESET_ALL}")
