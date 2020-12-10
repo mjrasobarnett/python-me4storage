@@ -24,7 +24,6 @@ REQUIRED = [
     'terminaltables',
     'pysftp',
     'fuzzywuzzy',
-    'python-Levenshtein',
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -66,6 +65,9 @@ setup(
             ],
     },
     install_requires=REQUIRED,
+    extras_require={
+        'levenshtein': ['python-Levenshtein'],
+    },
     include_package_data=True,
 )
 
