@@ -11,13 +11,19 @@ from pprint import pformat
 
 logger = logging.getLogger(__name__)
 
-def format_health(system, detailed=False):
+def format_health(system, service_tags, detailed=False):
     output = []
-    output.append(f"System: {system.system_name}")
-    output.append(f"\tHealth: {system.health}")
-    output.append(f"\tProduct Type: {system.product_id}")
+    if system.health == 'OK':
+        output.append(f"{Style.BRIGHT}Array Health: {Fore.GREEN}{Style.BRIGHT}{system.health}{Style.RESET_ALL}")
+    elif system.health == 'Degraded':
+        output.append(f"{Style.BRIGHT}Array Health: {Fore.RED}{Style.BRIGHT}{system.health}{Style.RESET_ALL}")
+    else:
+        output.append(f"{Style.BRIGHT}Array Health: {Fore.PURPLE}{Style.BRIGHT}{system.health}{Style.RESET_ALL}")
 
-    return "\n".join(output)
+    health_output = "\n".join(output)
+    system_output = format_system(system, service_tags)
+
+    return health_output + "\n\n" + system_output
 
 def format_certificates(system, certificates, detailed=False):
     output = []
@@ -48,7 +54,7 @@ def format_system(system, service_tags):
     output.append(f"  Location:        {system.system_location}")
     output.append("")
 
-    output.append(f"Service Tags:")
+    output.append(f"{Style.BRIGHT}Service Tags:{Style.RESET_ALL}")
     for service_tag in service_tags:
         output.append(f"  Enclosure {service_tag.enclosure_id}:     {service_tag.service_tag}")
 

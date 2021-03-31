@@ -27,10 +27,11 @@ def logs(args, session):
         raise UsageError("--sender and --recipient must be given")
 
     system = next(iter(show.system(session)))
-    service_tag = next(iter(show.service_tag_info(session)))
+    service_tags = show.service_tag_info(session)
+    service_tag = next(iter(service_tags))
 
     # Save storage health output
-    health_text = util.strip_ansi_escape(formatters.format_health(system))
+    health_text = util.strip_ansi_escape(formatters.format_health(system, service_tags))
 
 
     # Compose standard filename for log bundle
