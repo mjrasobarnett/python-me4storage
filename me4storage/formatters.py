@@ -12,7 +12,7 @@ from pprint import pformat
 
 logger = logging.getLogger(__name__)
 
-def format_health(system, service_tags, detailed=False):
+def format_health(system, service_tags, disks, detailed=False):
     output = []
     if system.health == 'OK':
         output.append(f"{Style.BRIGHT}Array Health: {Fore.GREEN}{Style.BRIGHT}{system.health}{Style.RESET_ALL}")
@@ -25,10 +25,12 @@ def format_health(system, service_tags, detailed=False):
     system_output = format_system(system, service_tags)
     redundancy_output = format_system_redundancy(system)
     unhealthy_output = format_unhealthy_components(system)
+    disks_output = format_disks_health(disks)
 
     return health_output + "\n\n" \
            + system_output + "\n\n" \
            + redundancy_output + "\n\n" \
+           + disks_output + "\n\n" \
            + unhealthy_output
 
 def format_certificates(system, certificates, detailed=False):
@@ -100,6 +102,28 @@ def format_system_redundancy(system):
     output.append("")
 
     return "\n".join(output)
+
+def format_disks_health(disks):
+    output = []
+
+    unhealthy_disks = [disk for disk in disks if disk.health != 'OK']
+
+    total_unhealthy_disks = len(unhealthy_disks)
+    total_disks = len(disks)
+    total_healthy_disks = total_disks - total_unhealthy_disks
+
+    if total_unhealthy_disks == 0:
+        output.append(f"{Fore.WHITE}{Style.BRIGHT}Disks: {Fore.GREEN}{Style.BRIGHT}{total_healthy_disks}/{total_disks}{Style.RESET_ALL}")
+    else:
+        output.append(f"{Fore.WHITE}{Style.BRIGHT}Disks: {Fore.RED}{Style.BRIGHT}{total_healthy_disks}/{total_disks}{Style.RESET_ALL}")
+
+    prefix = "  "
+
+    for disk in unhealthy_disks:
+        output.append(f"{prefix}{Fore.RED}{Style.BRIGHT}Slot {disk.location} - {disk.extended_status_reason} - {disk.architecture}, {disk.size}, Mfr: {disk.vendor}, Model: {disk.model}, Rev: {disk.revision}, Serial: {disk.serial_number}{Style.RESET_ALL}")
+
+    return "\n".join(output)
+
 
 def format_unhealthy_components(system):
     output = []

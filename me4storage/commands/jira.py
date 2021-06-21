@@ -26,11 +26,12 @@ logger = logging.getLogger(__name__)
 def logs(args, session):
 
     system = next(iter(show.system(session)))
+    disks = show.disks(session)
     service_tags = show.service_tag_info(session)
     service_tag = next(iter(service_tags))
 
     # Save storage health output
-    health_text = util.strip_ansi_escape(formatters.format_health(system, service_tags))
+    health_text = util.strip_ansi_escape(formatters.format_health(system, service_tags, disks))
 
 
     # Compose standard filename for log bundle

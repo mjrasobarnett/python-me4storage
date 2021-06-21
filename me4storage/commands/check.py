@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 def health_status(args, session):
 
     system = next(iter(show.system(session)))
+    disks = show.disks(session)
     service_tags = show.service_tag_info(session)
 
     if system.health == 'OK':
@@ -29,7 +30,7 @@ def health_status(args, session):
     else:
         rc = CheckResult.UNKNOWN
 
-    print(formatters.format_health(system, service_tags))
+    print(formatters.format_health(system, service_tags, disks))
     return rc.value
 
 def firmware_version(args, session):
