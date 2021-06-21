@@ -170,7 +170,7 @@ def cli():
     jira_group = jira_p.add_argument_group('jira')
     jira_group.add_argument(
                 '--jira-server',
-                dest='jira_recipient',
+                dest='jira_server',
                 help='jira server to connect to',
                 )
     jira_group.add_argument(
@@ -191,7 +191,7 @@ def cli():
     jira_group.add_argument(
                 '--jira-prefix',
                 dest='jira_prefix',
-                default='TESTING - IGNORE - Storage ALERT',
+                default='Storage ALERT',
                 help='Prefix to prepend to new jira issues created',
                 )
     jira_group.add_argument(
