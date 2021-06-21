@@ -4,6 +4,7 @@ import json
 import re
 from datetime import datetime
 from colorama import Fore, Style
+import textwrap
 
 from me4storage.common.exceptions import ApiError
 import me4storage.common.tables as tables
@@ -22,8 +23,13 @@ def format_health(system, service_tags, detailed=False):
 
     health_output = "\n".join(output)
     system_output = format_system(system, service_tags)
+    redundancy_output = format_system_redundancy(system)
+    unhealthy_output = format_unhealthy_components(system)
 
-    return health_output + "\n\n" + system_output
+    return health_output + "\n\n" \
+           + system_output + "\n\n" \
+           + redundancy_output + "\n\n" \
+           + unhealthy_output
 
 def format_certificates(system, certificates, detailed=False):
     output = []
@@ -58,6 +64,62 @@ def format_system(system, service_tags):
     for service_tag in service_tags:
         output.append(f"  Enclosure {service_tag.enclosure_id}:     {service_tag.service_tag}")
 
+
+    return "\n".join(output)
+
+def format_system_redundancy(system):
+    output = []
+
+    redundancy = next(iter(system.redundancy))
+    output.append(f"{Fore.WHITE}{Style.BRIGHT}System Redundancy:{Style.RESET_ALL}")
+    output.append(f"  Mode:            {redundancy.redundancy_mode}")
+
+    if redundancy.redundancy_status == 'Redundant':
+        output.append(f"  Status:          {Fore.GREEN}{Style.BRIGHT}{redundancy.redundancy_status}{Style.RESET_ALL}")
+    else:
+        output.append(f"  Status:          {Fore.RED}{Style.BRIGHT}{redundancy.redundancy_status}{Style.RESET_ALL}")
+
+    controller_a_status = redundancy.controller_a_status
+    controller_b_status = redundancy.controller_b_status
+    secondary_mc_status = redundancy.other_mc_status
+
+    if controller_a_status == 'Operational':
+        output.append(f"  Controller A:    {Fore.GREEN}{Style.BRIGHT}{controller_a_status}{Style.RESET_ALL}")
+    else:
+        output.append(f"  Controller A:    {Fore.RED}{Style.BRIGHT}{controller_a_status}{Style.RESET_ALL}")
+
+    if controller_b_status == 'Operational':
+        output.append(f"  Controller B:    {Fore.GREEN}{Style.BRIGHT}{controller_b_status}{Style.RESET_ALL}")
+    else:
+        output.append(f"  Controller B:    {Fore.RED}{Style.BRIGHT}{controller_b_status}{Style.RESET_ALL}")
+
+    if secondary_mc_status == 'Operational':
+        output.append(f"  Secondary MC:    {Fore.GREEN}{Style.BRIGHT}{secondary_mc_status}{Style.RESET_ALL}")
+    else:
+        output.append(f"  Secondary MC:    {Fore.RED}{Style.BRIGHT}{secondary_mc_status}{Style.RESET_ALL}")
+    output.append("")
+
+    return "\n".join(output)
+
+def format_unhealthy_components(system):
+    output = []
+
+    unhealthy_components = system.unhealthy_component
+
+    if unhealthy_components:
+        output.append(f"{Fore.WHITE}{Style.BRIGHT}Unhealthy Components:{Style.RESET_ALL}\n")
+        prefix = "  "
+
+    for component in unhealthy_components:
+        output.append(f"{prefix}{Fore.WHITE}{Style.BRIGHT}Component Type:  {component.component_id}{Style.RESET_ALL}")
+        output.append(f"{prefix}  ID:              {component.primary_key}")
+        output.append(f"{prefix}  Component Type:  {component.basetype} - {component.component_type}")
+        output.append(f"{prefix}  Health:          {Fore.RED}{Style.BRIGHT}{component.health}{Style.RESET_ALL}")
+        health_reason = textwrap.indent(textwrap.dedent(textwrap.fill(component.health_reason)), f'{prefix}                   ')
+        health_recommendation = textwrap.indent(textwrap.dedent(textwrap.fill(component.health_recommendation)), f'{prefix}                   ')
+        output.append(f"{prefix}  Health Reason:\n   {health_reason}")
+        output.append(f"{prefix}  Recommendation:\n  {health_recommendation}")
+        output.append("")
 
     return "\n".join(output)
 
