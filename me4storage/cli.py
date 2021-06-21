@@ -16,7 +16,7 @@ from me4storage.common.nsca import CheckResult
 from me4storage.api.session import Session
 from me4storage import commands
 from me4storage.commands import add, check, modify, show, configure
-from me4storage.commands import delete, save, update, restart, email
+from me4storage.commands import delete, save, update, restart, email, jira
 
 def cli():
 
@@ -165,6 +165,48 @@ def cli():
                 default='Storage INFO',
                 help='Email Address to send from',
                 )
+
+    jira_p = argparse.ArgumentParser(add_help=False)
+    jira_group = jira_p.add_argument_group('jira')
+    jira_group.add_argument(
+                '--jira-server',
+                dest='jira_recipient',
+                help='jira server to connect to',
+                )
+    jira_group.add_argument(
+                '--jira-user',
+                dest='jira_user',
+                help='jira username to connect with',
+                )
+    jira_group.add_argument(
+                '--jira-password',
+                dest='jira_password',
+                help='jira password to connect with',
+                )
+    jira_group.add_argument(
+                '--jira-issue-id',
+                dest='jira_issue_id',
+                help='Prefix to prepend to new jira issues created',
+                )
+    jira_group.add_argument(
+                '--jira-prefix',
+                dest='jira_prefix',
+                default='TESTING - IGNORE - Storage ALERT',
+                help='Prefix to prepend to new jira issues created',
+                )
+    jira_group.add_argument(
+                '--jira-project',
+                dest='jira_project',
+                default='FAULT',
+                help='Jira project to create new jira issues under',
+                )
+    jira_group.add_argument(
+                '--jira-issue-type',
+                dest='jira_issue_type',
+                default='Fault',
+                help='Jira issue type to create new issues as',
+                )
+
 
     ####################################################################
     # CHECK subcommands
@@ -896,6 +938,24 @@ def cli():
                     help='''email logs''')
     subparsers.append(email_logs_p)
     email_logs_p.set_defaults(func=commands.email.logs)
+
+    ####################################################################
+    # JIRA subcommands
+    ####################################################################
+
+    # Top level subcommand
+    jira_parser_p = subcommands.add_parser(name='jira',
+        help='''jira commands''')
+    jira_subcommands = jira_parser_p.add_subparsers(dest='jira_subcommands',
+        title='subcommands of jira',description='''
+        Below are the core subcommands of program:''')
+    jira_subcommands.required = True
+
+    jira_logs_p = jira_subcommands.add_parser(name='logs',
+                    parents=[auth_p, jira_p],
+                    help='''jira logs''')
+    subparsers.append(jira_logs_p)
+    jira_logs_p.set_defaults(func=commands.jira.logs)
 
     ####################################################################
     # RESTART subcommands
